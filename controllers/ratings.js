@@ -1,0 +1,43 @@
+const ratingsModel = require("../models/ratings");
+const userDb = require("../models/users");
+const ApiError = require("../error/ApiError");
+
+const addRating = async(req, res, next)=>{
+    try{
+        const userID = req.params.id;
+        const user = await userDb.findById(userID);
+        const { punctuality, Assignments, PersonalDefense, classParticipation, classAssessment,personalDefense, week } = req.body;
+        const theTotal = ((punctuality + Assignments + personalDefense  + classParticipation + classAssessment)/500)* 100;
+        
+        const rating = await ratingsModel({
+            punctuality: punctuality,
+            Assignments: Assignments,
+            personalDefense: personalDefense,
+            classParticipation: classParticipation,
+            classAssessment: classAssessment,
+            total: theTotal,
+            week: week
+        })
+
+        user.allRatings.push(theTotal);
+        function sumArray(arr){
+            let sum = 0;
+            arr.forEach(item => {sum += item})
+            return sum
+        }
+        user.weeklyRating = theTotal;
+        user.overallRating = (sumArray(user.allRatings))/ user.allRatings.length;
+        rating.student = user;
+        
+        user.save()
+        rating.save()
+        
+        res.status(200).json({message: `rated successfully`})
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
+
+module.exports ={
+    addRating
+}
