@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const sowSchema = new mongoose.Schema({
-    student: {type: mongoose.SchemaTypes.ObjectId, ref:"users"},
+    student: {type: mongoose.SchemaTypes.ObjectId, ref:"SOWusers"},
     week: {type: Number, required: true}
 }, {timestamps: true});
 

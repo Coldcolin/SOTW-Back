@@ -7,7 +7,7 @@ const ratingsSchema = new mongoose.Schema({
     classParticipation: {type: Number, required: true},
     classAssessment: {type: Number, required: true},
     total: {type: Number, required: true},
-    student: {type: mongoose.SchemaTypes.ObjectId, ref: "users"},
+    student: {type: mongoose.SchemaTypes.ObjectId, ref: "SOWusers"},
     week: {type: Number, required: true}
 }, {timestamps: true});
 

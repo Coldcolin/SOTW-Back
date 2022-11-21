@@ -15,6 +15,6 @@ const userSchema = new mongoose.Schema({
     bStudentOfTheWeek: {type: Boolean, default: false}
 }, {timestamps:true});
 
-const userModel = mongoose.model("users", userSchema);
+const userModel = mongoose.model("SOWusers", userSchema);
 
 module.exports = userModel;
