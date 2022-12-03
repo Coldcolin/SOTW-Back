@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken")
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
+// const fs = require("fs");
 const validateEmail = require('node-deep-email-validator');
 const cloudinary = require("cloudinary").v2;
 
@@ -43,7 +43,7 @@ const createUser = async(req, res, next)=>{
                 image: imageShow.secure_url,
                 imageId: imageShow.public_id
             });
-            fs.unlinkSync(req.file.path);
+            // fs.unlinkSync(req.file.path);
             res.status(201).json({data: newUser});
         }else{
             res.status(400).json({error: valid.failReason});
