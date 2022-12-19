@@ -6,8 +6,9 @@ const apiErrorHandler = require("./error/api-error-handler.js")
 const PORT = process.env.PORT || 6000
 //middleware
 const app = express();
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
+
 
 //database collection
 const url = process.env.URL;
