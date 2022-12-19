@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken")
 const multer = require("multer");
 const path = require("path");
 // const fs = require("fs");
-const validateEmail = require('node-deep-email-validator');
+// const validateEmail = require('node-deep-email-validator');
 const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({ 
@@ -30,9 +30,9 @@ const upload = multer({storage}).single("image");
 
 const createUser = async(req, res, next)=>{
     try{
-        const valid = await validateEmail(req.body.email);
+        // const valid = await validateEmail(req.body.email);
         const imageShow = await cloudinary.uploader.upload(req.file.path)
-        if(valid.result){
+        // if(valid.result){
             const salt = await bcrypt.genSalt(10);
             const hash = await bcrypt.hash(req.body.password, salt)
             const newUser = await userModel.create({
@@ -45,9 +45,9 @@ const createUser = async(req, res, next)=>{
             });
             // fs.unlinkSync(req.file.path);
             res.status(201).json({data: newUser});
-        }else{
-            res.status(400).json({error: valid.failReason});
-        }
+        // }else{
+        //     res.status(400).json({error: valid.failReason});
+        // }
     }catch(err){
         next(ApiError.badRequest(`${err}`))
     }
