@@ -6,7 +6,9 @@ const apiErrorHandler = require("./error/api-error-handler.js")
 const PORT = process.env.PORT || 6000
 //middleware
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: '*'
+}));
 app.use(express.json());
 
 
