@@ -26,8 +26,8 @@ const addRating = async(req, res, next)=>{
             return sum
         }
         
-        user.weeklyRating = Math.round(theTotal);
-        user.overallRating = Math.round((sumArray(user.allRatings))/ user.allRatings.length);
+        user.weeklyRating = Math.round(theTotal * 10)/ 10;
+        user.overallRating = Math.round(((sumArray(user.allRatings))/ user.allRatings.length)* 10)/10;
         rating.student = user;
         
         user.save()
