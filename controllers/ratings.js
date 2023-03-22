@@ -50,6 +50,18 @@ const getRatings = async (req, res, next)=>{
     }
 }
 
+// const deleteRatings = async (req, res)=>{
+//     try{
+//         const id = req.params.id;
+//         const rate = await ratingsModel.findById(id);
+//         const studentId = rate.student;
+//         const student = await userDb.findById(studentId);
+
+//     }catch(err){
+//         next(ApiError.badRequest(`${err}`))
+//     }
+// }
+
 module.exports ={
     addRating,
     getRatings

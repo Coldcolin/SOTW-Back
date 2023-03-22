@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema({
+const alumniSchema = new mongoose.Schema({
     name: {type: String, required: true},
     image: {type: String, required: true},
     imageId: {type: String, required: true},
@@ -17,6 +17,6 @@ const userSchema = new mongoose.Schema({
     bStudentOfTheWeek: {type: Boolean, default: false}
 }, {timestamps:true});
 
-const userModel = mongoose.model("SOWusers", userSchema);
+const alumniModel = mongoose.model("alumni", alumniSchema);
 
-module.exports = userModel;
+module.exports = alumniModel;

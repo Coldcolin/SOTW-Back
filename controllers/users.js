@@ -88,7 +88,7 @@ const getOneUser = async (req, res, next)=>{
 const updateUser = async (req, res, next)=>{
     try{
         const id = req.params.id;
-        const user = userModel.findByIdAndUpdate(id, {
+        const user = await userModel.findByIdAndUpdate(id, {
             name: req.body.name,
             email: req.body.email,
             stack: req.body.stack,
@@ -133,6 +133,29 @@ const loginUser = async (req, res, next)=>{
     }
 }
 
+const makeAlumni = async(req, res)=>{
+    try{
+        const id = req.params.id;
+        const user = await userModel.findByIdAndUpdate(id, {
+            role: "alumni",
+        }, {new: true});
+        res.status(200).json({message: "successfully made an Alumni"});
+    }catch(err){
+        next(ApiError.badRequired(`${err}`))
+    }
+}
+const makeStudent = async(req, res)=>{
+    try{
+        const id = req.params.id;
+        const user = await userModel.findByIdAndUpdate(id, {
+            role: "student",
+        }, {new: true});
+        res.status(200).json({message: "successfully made an Alumni"});
+    }catch(err){
+        next(ApiError.badRequired(`${err}`))
+    }
+}
+
 module.exports ={
     createUser,
     upload,
@@ -141,5 +164,8 @@ module.exports ={
     getOneUser,
     updateUser,
     getUsers,
-    loginUser
+    loginUser,
+    makeAlumni,
+    makeStudent
+
 }
