@@ -50,19 +50,45 @@ const getRatings = async (req, res, next)=>{
     }
 }
 
-// const deleteRatings = async (req, res)=>{
-//     try{
-//         const id = req.params.id;
-//         const rate = await ratingsModel.findById(id);
-//         const studentId = rate.student;
-//         const student = await userDb.findById(studentId);
+const deleteRatings = async (req, res)=>{
+    try{
+        const studentId = req.params.studentId;
+        const student = await userDb.findById(studentId);
+        const week = req.params.week;
+        const ratedStudent = await ratingsModel.find().where("student").equals(`${studentId}`);
 
-//     }catch(err){
-//         next(ApiError.badRequest(`${err}`))
-//     }
-// }
+        if(ratedStudent){
+            let toBeDeleted = ratedStudent.filter((i)=> (i.week === +week))
+            let ratingId = toBeDeleted[0]?.id;
+            let totalValue = toBeDeleted[0]?.total;
+            let totalIndex = student.allRatings.indexOf(totalValue);
+            if (totalIndex !== -1) {
+                student.allRatings[totalIndex] = null;
+            };
+            // student.save();
+
+            student.allRatings.pull(null);
+            // student.save()
+            function sumArray(arr){
+                let sum = 0;
+                arr.forEach(item => {sum += item})
+                return sum
+            }
+            student.overallRating = Math.round(((sumArray(student.allRatings))/ student.allRatings.length)* 10)/10;
+            student.save()
+            await ratingsModel.findByIdAndDelete(ratingId);
+            res.status(200).json({message: "Rating Deleted"});
+            // console.log(week)
+        }
+        
+
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
 
 module.exports ={
     addRating,
-    getRatings
+    getRatings,
+    deleteRatings
 }
