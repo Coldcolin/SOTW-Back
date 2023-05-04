@@ -40,6 +40,8 @@ const createUser = async(req, res, next)=>{
                 email: req.body.email,
                 stack: req.body.stack,
                 password: hash,
+                cohort: req.body.cohort,
+                role: req.body.role,
                 image: imageShow.secure_url,
                 imageId: imageShow.public_id
             });
