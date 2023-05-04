@@ -6,6 +6,7 @@ const addRating = async(req, res, next)=>{
     try{
         const userID = req.params.id;
         const user = await userDb.findById(userID);
+        const ratedStudent = await ratingsModel.find().where("student").equals(`${userID}`);
         const { punctuality, Assignments, classParticipation, classAssessment,personalDefense, week } = req.body;
         const theTotal = ((Number(punctuality) + Number(Assignments) + Number(personalDefense)  + Number(classParticipation) + Number(classAssessment))/500)* 100;
         
@@ -16,8 +17,23 @@ const addRating = async(req, res, next)=>{
             classParticipation: classParticipation,
             classAssessment: classAssessment,
             total: theTotal,
-            week: week
         })
+
+        if(ratedStudent){
+            let toBeDeleted = ratedStudent.map((i)=> i.week);
+            let highestValue = Math.max(...toBeDeleted);
+            if(toBeDeleted.includes(week)){
+                res.status(400).json({message: "week already saved"})
+            }else if(week > highestValue){
+                rating.week = week
+                user.weeklyRating = Math.round(theTotal * 10)/ 10;
+            }else{
+                rating.week = week
+            }
+        }else{
+            rating.week = week
+            user.weeklyRating = Math.round(theTotal * 10)/ 10;
+        }
 
         user.allRatings.push(theTotal);
         function sumArray(arr){
@@ -26,7 +42,7 @@ const addRating = async(req, res, next)=>{
             return sum
         }
         
-        user.weeklyRating = Math.round(theTotal * 10)/ 10;
+        
         user.overallRating = Math.round(((sumArray(user.allRatings))/ user.allRatings.length)* 10)/10;
         rating.student = user;
         
@@ -65,7 +81,7 @@ const deleteRatings = async (req, res)=>{
             if (totalIndex !== -1) {
                 student.allRatings[totalIndex] = null;
             };
-            // student.save();
+            
 
             student.allRatings.pull(null);
             // student.save()
@@ -75,8 +91,20 @@ const deleteRatings = async (req, res)=>{
                 return sum
             }
             student.overallRating = Math.round(((sumArray(student.allRatings))/ student.allRatings.length)* 10)/10;
-            student.save()
+
             await ratingsModel.findByIdAndDelete(ratingId);
+
+            const rated = await ratingsModel.find().where("student").equals(`${studentId}`);
+
+            let weekValues = rated.map((i)=> i.week);
+            let highestValue = Math.max(...weekValues);
+            let newHighest = rated.filter((i)=> i.week === highestValue);
+            // console.log("highestValue:", highestValue, "weekValues:", weekValues, "newHighest:", newHighest, "week:", week)
+            if (+week > highestValue){
+                student.weeklyRating = newHighest[0].total
+            }
+            student.save()
+            
             res.status(200).json({message: "Rating Deleted"});
             // console.log(week)
         }
