@@ -34,6 +34,9 @@ app.use("/SOW", require("./routes/SOW"));
 app.use("/BSOW", require("./routes/BSOW"));
 app.use("/Alumni", require("./routes/Alumni"));
 
+//algorithm route
+app.use("/algo", require("./routes/SOTWAlgorithm"))
+
 
 //error middleware
 app.use(apiErrorHandler);
