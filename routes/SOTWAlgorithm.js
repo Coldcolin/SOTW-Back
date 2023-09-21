@@ -7,7 +7,7 @@ router.use((req, res, next)=>{
     next();
 });
 
-router.post("/sotwfront", (req, res)=>{theAlgorithm.chooseFrontEndSOTW(req, res)});
-router.post("/sotwback", (req, res)=>{theAlgorithm.chooseBackEndSOTW(req, res)});
+router.post("/sotwfront/", (req, res, next)=>{theAlgorithm.chooseFrontEndSOTW(req, res, next)});
+router.post("/sotwback/", (req, res, next)=>{theAlgorithm.chooseBackEndSOTW(req, res, next)});
 
 module.exports = router;
