@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const {addSOW, getSOWTW, getAllSOWTW} = require("../controllers/SOW")
+const {addSOW, getSOWTW, getAllSOWTW, deleteSOTW} = require("../controllers/SOW")
 
 router.post("/create/:id", addSOW);
 router.get("/student", getSOWTW);
 router.get("/all", getAllSOWTW);
+router.delete("/delete/:week", deleteSOTW);
 
 module.exports = router;

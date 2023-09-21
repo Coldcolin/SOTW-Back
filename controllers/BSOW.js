@@ -50,8 +50,21 @@ const getAllSOWTW= async (req, res, next)=>{
     }
 }
 
+const deleteSOTW= async (req, res, next)=>{
+    try{
+        const week = req.params.week
+        const oneSOW = await SOWModel.find().where("week").equals(`${week}`)
+        await oneSOW.remove()
+        res.status(200).json({message: "Student of the week deleted"})
+
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
+
 module.exports = {
     addSOW,
     getSOWTW,
-    getAllSOWTW
+    getAllSOWTW,
+    deleteSOTW
 }
