@@ -66,7 +66,7 @@ const getRatings = async (req, res, next)=>{
     }
 }
 
-const deleteRatings = async (req, res)=>{
+const deleteRatings = async (req, res, next)=>{
     try{
         const studentId = req.params.studentId;
         const student = await userDb.findById(studentId);
