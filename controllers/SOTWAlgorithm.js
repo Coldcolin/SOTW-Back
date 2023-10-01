@@ -110,7 +110,7 @@ const theAlgorithm ={
             //find students in the Front end
             const backEndStudents = resultsForWeek.filter((result)=> (result?.student?.stack === "Back End") && (result?.student?.role === "student"));
             //If there are no students
-            if(frontEndStudents.length !== 0){
+            if(backEndStudents.length !== 0){
             //Find Student/Students with the highest Score
             const arrayOfTotalScores = backEndStudents.map((student)=> student?.total)
             //Find Highest Score
