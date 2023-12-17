@@ -272,7 +272,8 @@ const resetPassword = async(req, res, next)=>{
     try{
         const userId = req.params.id;
         const decryptedString = cryptr.decrypt(userId);
-        // res.status(201).json({ data: decryptedString})
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(req.body.password, salt)
         
         const theTokenItem = await tokenModel.findOne({userId: decryptedString});
         
@@ -281,7 +282,7 @@ const resetPassword = async(req, res, next)=>{
         if(token !== req.body.token){
             res.status(400).json({message: "incorrect token"})
         }else{
-            await userModel.findByIdAndUpdate( userId, {
+            await userModel.findByIdAndUpdate( decryptedString, {
                 password: hash,
             }, {new: true})
             await tokenModel.findByIdAndDelete(
