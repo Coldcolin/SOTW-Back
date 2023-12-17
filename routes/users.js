@@ -12,6 +12,6 @@ router.patch("/alumni/:id", makeAlumni);
 router.patch("/student/:id", makeStudent);
 router.post("/login", loginUser);
 router.post("/forgot", forgotPassword);
-router.post("/reset/:id", resetPassword);
+router.patch("/reset/:id", resetPassword);
 
 module.exports = router;
