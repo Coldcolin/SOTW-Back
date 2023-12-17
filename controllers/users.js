@@ -6,8 +6,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken")
 const multer = require("multer");
 const path = require("path");
-// const fs = require("fs");
-// const validateEmail = require('node-deep-email-validator');
+const Cryptr = require('cryptr');
+const cryptr = new Cryptr('myTotallySecretKey');
 const nodemailer = require("nodemailer");
 const { error } = require("console");
 const crypto = require('crypto');
@@ -185,14 +185,28 @@ const forgotPassword= async(req, res, next) => {
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
-      
-        // // Generate a unique token for password reset
-        const tokenValue = crypto.randomBytes(4).toString("hex")
-        await tokenModel.create({
-            token: tokenValue,
-            userId: user[0]._id,
-        })
+
+        const checkIfTokenExists = await tokenModel.find().where("userId").equals(`${user[0]._id}`)
         
+        const tokenValue = crypto.randomBytes(4).toString("hex")
+
+        if (checkIfTokenExists.length >= 1) {
+            await tokenModel.findByIdAndDelete(checkIfTokenExists[0]._id)
+            // // Generate a unique token for password reset
+            await tokenModel.create({
+                token: tokenValue,
+                userId: user[0]._id,
+            })
+        }else{
+            // Generate a unique token for password reset
+            await tokenModel.create({
+                token: tokenValue,
+                userId: user[0]._id,
+            })
+        }
+
+        const value = user[0]?._id.toString()
+        const encryptedString = cryptr.encrypt(value);
 
 
         const info = await transporter.sendMail({
@@ -209,15 +223,15 @@ const forgotPassword= async(req, res, next) => {
               <title>Password Reset</title>
             </head>
             
-            <body style="font-family: 'Arial', sans-serif; margin: 0; padding: 30px; background-color: #655548;">
+            <body style="font-family: 'Arial', sans-serif; margin: 0; padding: 30px; background-color: #023047;">
             
               <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="margin-top: 30px; border-radius: 5px">
                 <tr>
-                  <td bgcolor="#FCD432" style="padding: 40px 30px 40px 30px;">
+                  <td bgcolor="#fffff" style="padding: 40px 30px 40px 30px;border-radius: 5px">
             
                     <table border="0" cellpadding="0" cellspacing="0" width="100%">
                       <tr>
-                        <td style="color: #f3f3f3; font-size: 24px; text-align: center;-webkit-text-stroke: 1px black;text-shadow:3px 3px 0 #000,-1px -1px 0 #000,  1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">
+                        <td style="color: #023047; font-size: 24px; text-align: center;-webkit-text-stroke: 1px black;text-shadow:3px 3px 0 #000,-1px -1px 0 #000,  1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">
                           <strong>Password Reset</strong>
                         </td>
                       </tr>
@@ -226,10 +240,10 @@ const forgotPassword= async(req, res, next) => {
                           <p>We received a request to reset your password. If you did not make this request, please ignore this email.</p>
                           <p>To reset your password, click the link below:</p>
                           <p style="text-align: center;">
-                            <a href="https://thecurve-sotw.onrender.com/#/reset/${user[0]._id}" style="background-color: #3E4C5B; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
+                            <a href="https://thecurve-sotw.onrender.com/#/reset/${encryptedString}" style="background-color: #FFB703; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
                           </p>
                           <p>If the button above doesn't work, you can copy and paste the following link into your browser:</p>
-                          <p style="text-align: center;">https://thecurve-sotw.onrender.com/#/reset/${user[0]._id}</p>
+                          <p style="text-align: center;">https://thecurve-sotw.onrender.com/#/reset/${encryptedString}</p>
                           <p style="text-align: center;">Use this token: <b>${tokenValue}</b></p>
                           <p style="margin-top: 30px;">Thanks,<br>THE CURVE AFRICA</p>
                         </td>
@@ -257,9 +271,11 @@ const forgotPassword= async(req, res, next) => {
 const resetPassword = async(req, res, next)=>{
     try{
         const userId = req.params.id;
-        const theTokenItem = await tokenModel.findOne({userId: userId});
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(req.body.password, salt)
+        const decryptedString = cryptr.decrypt(userId);
+        // res.status(201).json({ data: decryptedString})
+        
+        const theTokenItem = await tokenModel.findOne({userId: decryptedString});
+        
         const token = theTokenItem.token
 
         if(token !== req.body.token){
