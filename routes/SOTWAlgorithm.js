@@ -9,5 +9,6 @@ router.use((req, res, next)=>{
 
 router.post("/sotwfront/", (req, res, next)=>{theAlgorithm.chooseFrontEndSOTW(req, res, next)});
 router.post("/sotwback/", (req, res, next)=>{theAlgorithm.chooseBackEndSOTW(req, res, next)});
+router.post("/sotwproduct/", (req, res, next)=>{theAlgorithm.chooseProductSOTW(req, res, next)});
 
 module.exports = router;

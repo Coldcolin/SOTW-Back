@@ -33,6 +33,7 @@ app.use("/rating", require("./routes/ratings"));
 app.use("/vote", require("./routes/vote"));
 app.use("/SOW", require("./routes/SOW"));
 app.use("/BSOW", require("./routes/BSOW"));
+app.use("/PSOW", require("./routes/PSOW"));
 app.use("/Alumni", require("./routes/Alumni"));
 
 //algorithm route
