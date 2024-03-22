@@ -1,4 +1,4 @@
-const SOWModel = require("../models/BSOW");
+const SOWModel = require("../models/PSOW");
 const ApiError = require("../error/ApiError");
 
 
