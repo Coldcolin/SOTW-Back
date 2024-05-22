@@ -1,4 +1,4 @@
-require("dotenv").config({path: './config/index.env'})
+require("dotenv").config({path: './config/index.env'});
 const express =require("express");
 const cors = require("cors");
 const mongoose = require("mongoose")
@@ -35,6 +35,7 @@ app.use("/SOW", require("./routes/SOW"));
 app.use("/BSOW", require("./routes/BSOW"));
 app.use("/PSOW", require("./routes/PSOW"));
 app.use("/Alumni", require("./routes/Alumni"));
+app.use('/student', require('./routes/monthlyRouter.js'));
 
 //algorithm route
 app.use("/algo", require("./routes/SOTWAlgorithm"))
