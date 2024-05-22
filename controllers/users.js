@@ -116,7 +116,7 @@ const updateUser = async (req, res, next)=>{
     }
 }
 
-const secondeUpdate = async(req,res,next)=>{
+const secondUpdate = async(req,res,next)=>{
     try {
         const id = req.params.id
         const checkUser = await userModel.findById(id)
@@ -336,6 +336,7 @@ module.exports ={
     getUser,
     getOneUser,
     updateUser,
+    secondUpdate,
     getUsers,
     loginUser,
     makeAlumni,
