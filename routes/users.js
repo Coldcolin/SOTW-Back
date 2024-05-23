@@ -1,5 +1,5 @@
 const express = require('express');
-const {createUser, upload, deleteUser, getUser, getOneUser, updateUser, getUsers, loginUser,makeAlumni,makeStudent, forgotPassword, resetPassword} = require("../controllers/users.js");
+const {createUser, upload, deleteUser, getUser, getOneUser, updateUser, secondUpdate, getUsers, loginUser,makeAlumni,makeStudent, forgotPassword, resetPassword} = require("../controllers/users.js");
 const router = express.Router();
 
 router.post("/create",upload, createUser);
@@ -8,6 +8,7 @@ router.get("/getUser/:id", getUser);
 router.get("/oneUser/:id", getOneUser);
 router.get("/allUsers", getUsers);
 router.patch("/update/:id", updateUser);
+router.patch("/anotherUpdate/:id", secondUpdate);
 router.patch("/alumni/:id", makeAlumni);
 router.patch("/student/:id", makeStudent);
 router.post("/login", loginUser);

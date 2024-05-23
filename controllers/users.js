@@ -116,6 +116,38 @@ const updateUser = async (req, res, next)=>{
     }
 }
 
+const secondUpdate = async(req,res,next)=>{
+    try {
+        const id = req.params.id
+        const checkUser = await userModel.findById(id)
+        if (!checkUser) {
+            return res.status(404).json('User not Found');
+        }
+
+        const Data={
+            name: req.body.name || checkUser.name,
+            password: req.body.password || checkUser.password,
+            email: req.body.email || checkUser.email,
+        }
+
+        if(req.file){
+           // Data.image = path.join('/uploads', req.file.filename); OR
+            Data.image = req.file.path //cloudinary provide the image URL in req.file.path
+        } else {
+            Data.image= checkUser.image;
+        }
+        if(req.body.password){
+            const salt = await bcrypt.gensync(10)
+            Data.password = await bcrypt.hash(req.body.password, salt)
+        } else{
+            Data.password = checkUser.password
+        }
+        const updatedDetails = await userModel.findByIdAndUpdate(id, Data, { new: true });
+        res.status(200).json({message: "Details Updated"})
+    } catch (err) {
+        next(ApiError.badRequest(`${err}`))
+    }
+}
 const getUsers = async (req, res, next)=>{
     try{
         const users = await userModel.find();
@@ -304,6 +336,7 @@ module.exports ={
     getUser,
     getOneUser,
     updateUser,
+    secondUpdate,
     getUsers,
     loginUser,
     makeAlumni,
