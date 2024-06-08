@@ -105,10 +105,16 @@ const getOneUser = async (req, res, next)=>{
 const updateUser = async (req, res, next)=>{
     try{
         const id = req.params.id;
+        const userWho = await userModel.findById(id);
+        if(req.file.path){
+            await cloudinary.uploader.destroy(userWho.imageId);
+        }
+        const imageShow = await cloudinary.uploader.upload(req.file.path)
         const user = await userModel.findByIdAndUpdate(id, {
-            name: req.body.name,
-            email: req.body.email,
-            stack: req.body.stack,
+            name: req.body.name || userWho.name,
+            email: req.body.email || userWho.email,
+            image: imageShow.secure_url,
+            imageId: imageShow.public_id
         }, {new: true});
         res.status(200).json({data: user});
     }catch(err){
