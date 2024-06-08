@@ -7,7 +7,7 @@ router.delete("/remove/:id", deleteUser)
 router.get("/getUser/:id", getUser);
 router.get("/oneUser/:id", getOneUser);
 router.get("/allUsers", getUsers);
-router.patch("/update/:id", updateUser);
+router.patch("/update/:id",upload, updateUser);
 router.patch("/anotherUpdate/:id", secondUpdate);
 router.patch("/alumni/:id", makeAlumni);
 router.patch("/student/:id", makeStudent);
