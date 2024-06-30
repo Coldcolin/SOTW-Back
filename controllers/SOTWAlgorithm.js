@@ -287,7 +287,81 @@ const theAlgorithm ={
         }catch(err){
             next(ApiError.badRequest(`${err}`))
         }
+    },
+    "chooseStudentsOfTheMonth": async function(req, res, next){
+        try{
+            //to get allRatings array for all current students per stack
+            const frontEndStudents = await users.find().where("role").equals("student").where("stack").equals("Front End").select('name allRatings');
+            const backEndStudents = await users.find().where("role").equals("student").where("stack").equals("Back End").select('name allRatings');
+            const productDesignStudents = await users.find().where("role").equals("student").where("stack").equals("Product Design").select('name allRatings');
+            //to get the name of each student and the commulative score for the last four weeks
+            function getLastFourElements(arr) {
+                // Check if the array has less than 4 elements
+                if (arr.length < 4) {
+                    return arr;
+                }
+                // Use slice to get the last 4 elements
+                return arr.slice(-4);
+                }
+
+            //create a new array with the containing objects withe the name, average and id properties, average being the the mean of the four scores
+            const checkingArrayFront = frontEndStudents.map((e)=>{
+                const lastFour = getLastFourElements(e.allRatings)
+                const sum = lastFour.reduce((p, e)=> p + e, 0);
+                const val = sum/lastFour.length;
+                return {id: e._id, name: e.name, average: val}
+            })
+            const checkingArrayBack = backEndStudents.map((e)=>{
+                const lastFour = getLastFourElements(e.allRatings)
+                const sum = lastFour.reduce((p, e)=> p + e, 0);
+                const val = sum/lastFour.length;
+                return {id: e._id, name: e.name, average: val}
+            })
+            const checkingArrayProduct = productDesignStudents.map((e)=>{
+                const lastFour = getLastFourElements(e.allRatings)
+                const sum = lastFour.reduce((p, e)=> p + e, 0);
+                const val = sum/lastFour.length;
+                return {id: e._id, name: e.name, average: val}
+            })
+
+
+            function getHighestAverage(arr) {
+                if (arr.length === 0) {
+                  return null; // Return null if the array is empty
+                }
+                let highestAverageObject = arr[0]; // Initialize with the first object
+                for (let i = 1; i < arr.length; i++) {
+                    if (arr[i].average > highestAverageObject.average) {
+                        highestAverageObject = arr[i]; // Update the highest average object
+                    }
+                }
+                return highestAverageObject;
+            }
+
+            const frontendStudentOfTheMonth = getHighestAverage(checkingArrayFront)
+            const backendStudentOfTheMonth = getHighestAverage(checkingArrayBack)
+            const productDesignStudentOfTheMonth = getHighestAverage(checkingArrayProduct)
+
+            const frontEndStudent = await users.findById(frontendStudentOfTheMonth.id);
+            const backEndStudent = await users.findById(backendStudentOfTheMonth.id);
+            const productDesignStudent = await users.findById(productDesignStudentOfTheMonth.id);
+            //create an instance for SOTW
+            const newSOWF = await frontendSOTW({week: req.body.week});
+            const newSOWB = await backendSOTW({week: req.body.week});
+            const newSOWP = await productSOTW({week: req.body.week});
+            //add student Id to SOTW document
+            newSOWF.student = frontEndStudent;
+            newSOWF.save()
+            newSOWB.student = backEndStudent;
+            newSOWB.save()
+            newSOWP.student = productDesignStudent;
+            newSOWP.save()
+            res.status(200).json({front: frontendStudentOfTheMonth, back: backendStudentOfTheMonth, product: productDesignStudentOfTheMonth})
+        }catch(err){
+            next(ApiError.badRequest(`${err}`))
+        }
     }
+
 }
 
 module.exports = theAlgorithm;
