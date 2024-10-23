@@ -14,7 +14,9 @@ const userSchema = new mongoose.Schema({
     weeklyRating: {type: Number},
     nominated: {type: Boolean, default: false},
     studentOfTheWeek: {type: Boolean, default: false},
-    bStudentOfTheWeek: {type: Boolean, default: false}
+    bStudentOfTheWeek: {type: Boolean, default: false},
+    position: {type: String},
+    week: {type: String, default: 1}
 }, {timestamps:true});
 
 const userModel = mongoose.model("SOWusers", userSchema);

@@ -11,5 +11,6 @@ router.post("/sotwfront/", (req, res, next)=>{theAlgorithm.chooseFrontEndSOTW(re
 router.post("/sotwback/", (req, res, next)=>{theAlgorithm.chooseBackEndSOTW(req, res, next)});
 router.post("/sotwproduct/", (req, res, next)=>{theAlgorithm.chooseProductSOTW(req, res, next)});
 router.post("/sotm/", (req, res, next)=>{theAlgorithm.chooseStudentsOfTheMonth(req, res, next)});
+router.post("/position", (req, res, next)=>{theAlgorithm.setStudentsPosition(req, res, next)});
 
 module.exports = router;

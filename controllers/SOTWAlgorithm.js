@@ -360,6 +360,28 @@ const theAlgorithm ={
         }catch(err){
             next(ApiError.badRequest(`${err}`))
         }
+    },
+    "setStudentsPosition": async function(req, res, next){
+        try{
+            const stacks = ["Front End", "Back End", "Product Design"];
+            
+            for (const stack of stacks) {
+                // Get all students for the current stack, sorted by overallRating in descending order
+                const students = await users.find({ role: "student", stack: stack })
+                    .sort({ overallRating: -1 });
+                
+                // Update positions
+                for (let i = 0; i < students.length; i++) {
+                    const student = students[i];
+                    student.position = i + 1; // Position starts from 1
+                    await student.save();
+                }
+            }
+            
+            res.status(200).json({ message: "Student positions updated successfully for all stacks" });
+        }catch(err){
+            next(ApiError.badRequest(`${err}`))
+        }
     }
 
 }
