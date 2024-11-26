@@ -25,9 +25,9 @@ const transporter = nodemailer.createTransport({
   });
 
 cloudinary.config({ 
-    cloud_name: 'coldcolin',
-    api_key: '294911175644673', 
-    api_secret: '2HLHt9dU-ltj82-NjftTpIAdj-M', 
+    cloud_name: 'dw926cl8d',
+    api_key: '449628339752179', 
+    api_secret: 'Ud-ZQsiQm6zWVPnL3LUlcx6t4nI', 
     secure: true 
   });
 
@@ -67,6 +67,7 @@ const createUser = async(req, res, next)=>{
         // }
     }catch(err){
         next(ApiError.badRequest(`${err}`))
+        console.error(err)
     }
 }
 

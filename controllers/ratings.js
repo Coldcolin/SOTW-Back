@@ -8,6 +8,12 @@ const addRating = async(req, res, next)=>{
         const user = await userDb.findById(userID);
         const ratedStudent = await ratingsModel.find().where("student").equals(`${userID}`);
         const { punctuality, Assignments, classParticipation, classAssessment,personalDefense, week } = req.body;
+
+        const existingRating = await ratingsModel.findOne({ student: userID, week: week });
+        if (existingRating) {
+            return res.status(400).json({ message: "Student has already been rated for this week" });
+        }
+
         const theTotal = ((Number(punctuality) + Number(Assignments) + Number(personalDefense)  + Number(classParticipation) + Number(classAssessment))/500)* 100;
         
         const rating = await ratingsModel({
@@ -19,21 +25,21 @@ const addRating = async(req, res, next)=>{
             total: theTotal,
         })
 
-        if(ratedStudent){
-            let toBeDeleted = ratedStudent.map((i)=> i.week);
-            let highestValue = Math.max(...toBeDeleted);
-            if(toBeDeleted.includes(week)){
-                res.status(400).json({message: "week already saved"})
-            }else if(week > highestValue){
-                rating.week = week
-                user.weeklyRating = Math.round(theTotal * 10)/ 10;
-            }else{
-                rating.week = week
-            }
-        }else{
+        // if(ratedStudent){
+        //     let toBeDeleted = ratedStudent.map((i)=> i.week);
+        //     let highestValue = Math.max(...toBeDeleted);
+        //     if(toBeDeleted.includes(week)){
+        //         res.status(400).json({message: "week already saved"})
+        //     }else if(week > highestValue){
+        //         rating.week = week
+        //         user.weeklyRating = Math.round(theTotal * 10)/ 10;
+        //     }else{
+        //         rating.week = week
+        //     }
+        // }else{
             rating.week = week
             user.weeklyRating = Math.round(theTotal * 10)/ 10;
-        }
+        // }
 
         user.allRatings.push(theTotal);
         function sumArray(arr){
@@ -115,8 +121,62 @@ const deleteRatings = async (req, res, next)=>{
     }
 }
 
+// ... existing code ...
+
+const updateRating = async (req, res, next) => {
+    try {
+        const { studentId, week } = req.params;
+        const { punctuality, Assignments, classParticipation, classAssessment, personalDefense } = req.body;
+
+        const student = await userDb.findById(studentId);
+        if (!student) {
+            return next(ApiError.notFound('Student not found'));
+        }
+
+        const rating = await ratingsModel.findOne({ student: studentId, week: week });
+        if (!rating) {
+            return next(ApiError.notFound('Rating not found for the specified week'));
+        }
+
+        // Update rating fields if provided
+        if (punctuality !== undefined) rating.punctuality = punctuality;
+        if (Assignments !== undefined) rating.Assignments = Assignments;
+        if (classParticipation !== undefined) rating.classParticipation = classParticipation;
+        if (classAssessment !== undefined) rating.classAssessment = classAssessment;
+        if (personalDefense !== undefined) rating.personalDefense = personalDefense;
+
+        // Recalculate total
+        const newTotal = ((Number(rating.punctuality) + Number(rating.Assignments) + Number(rating.personalDefense) + Number(rating.classParticipation) + Number(rating.classAssessment)) / 500) * 100;
+        rating.total = newTotal;
+
+        // Update allRatings array
+        const ratingIndex = student.allRatings.findIndex((_, index) => index === rating.week - 1);
+        if (ratingIndex !== -1) {
+            student.allRatings[ratingIndex] = newTotal;
+        }
+
+        // Recalculate overallRating
+        student.overallRating = Math.round((student.allRatings.reduce((sum, val) => sum + val, 0) / student.allRatings.length) * 10) / 10;
+
+        // Update weeklyRating if this is the most recent week
+        const highestWeek = Math.max(...student.allRatings.map((_, index) => index + 1));
+        if (parseInt(week) === highestWeek) {
+            student.weeklyRating = Math.round(newTotal * 10) / 10;
+        }
+
+        await rating.save();
+        await student.save();
+
+        res.status(200).json({ message: 'Rating updated successfully', updatedRating: rating });
+    } catch (err) {
+        next(ApiError.badRequest(`${err}`));
+    }
+};
+
+
 module.exports ={
     addRating,
     getRatings,
-    deleteRatings
+    deleteRatings,
+    updateRating
 }
