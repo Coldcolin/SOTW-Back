@@ -175,7 +175,7 @@ const loginUser = async (req, res, next)=>{
                     id: user._id,
                     email: user.email,
                     stack: user.stack,
-                }, process.env.secret_key, {expiresIn: "1d"});
+                }, process.env.secret_key, {expiresIn: "7d"});
                 res.status(200).json({message:"logged in", data: {...data, token}})
             }else{
                 res.status(400).json({error: `password: ${password} is incorrect`})
