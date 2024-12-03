@@ -53,6 +53,7 @@ const createUser = async(req, res, next)=>{
             const newUser = await userModel.create({
                 name: req.body.name,
                 email: req.body.email,
+                phone: req.body.phone,
                 stack: req.body.stack,
                 password: hash,
                 cohort: req.body.cohort,
