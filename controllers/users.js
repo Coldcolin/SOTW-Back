@@ -115,7 +115,8 @@ const updateUser = async (req, res, next)=>{
         const user = await userModel.findByIdAndUpdate(id, {
             name: req.body.name || userWho.name,
             image: imageShow.secure_url || userWho.image,
-            imageId: imageShow.public_id || userWho.imageId
+            imageId: imageShow.public_id || userWho.imageId,
+            phone: req.body.phone || userWho.phone
         }, {new: true});
         res.status(200).json({data: user});
     }catch(err){
@@ -176,7 +177,7 @@ const loginUser = async (req, res, next)=>{
                     id: user._id,
                     email: user.email,
                     stack: user.stack,
-                }, process.env.secret_key, {expiresIn: "7d"});
+                }, 'IamTHeWorlSdBEstDEvEKOper$$$IWillBETHe$$GreAtesT', {expiresIn: "7d"});
                 res.status(200).json({message:"logged in", data: {...data, token}})
             }else{
                 res.status(400).json({error: `password: ${password} is incorrect`})
