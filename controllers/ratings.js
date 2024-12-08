@@ -12,50 +12,36 @@ const addRating = async(req, res, next)=>{
         const existingRating = await ratingsModel.findOne({ student: userID, week: week });
         if (existingRating) {
             return res.status(400).json({ message: "Student has already been rated for this week" });
+        }else{
+            const theTotal = ((Number(punctuality) + Number(Assignments) + Number(personalDefense)  + Number(classParticipation) + Number(classAssessment))/500)* 100;
+        
+            const rating = await ratingsModel({
+                punctuality: punctuality,
+                Assignments: Assignments,
+                personalDefense: personalDefense,
+                classParticipation: classParticipation,
+                classAssessment: classAssessment,
+                total: theTotal,
+            })
+                rating.week = week
+                user.weeklyRating = Math.round(theTotal * 10)/ 10;
+
+            user.allRatings.push(theTotal);
+            function sumArray(arr){
+                let sum = 0;
+                arr.forEach(item => {sum += item})
+                return sum
+            }
+            
+            user.overallRating = Math.round(((sumArray(user.allRatings))/ user.allRatings.length)* 10)/10;
+            rating.student = user;
+            user.assessedForTheWeek = true
+            
+            user.save()
+            rating.save()
+            
+            res.status(200).json({message: `rated successfully`})
         }
-
-        const theTotal = ((Number(punctuality) + Number(Assignments) + Number(personalDefense)  + Number(classParticipation) + Number(classAssessment))/500)* 100;
-        
-        const rating = await ratingsModel({
-            punctuality: punctuality,
-            Assignments: Assignments,
-            personalDefense: personalDefense,
-            classParticipation: classParticipation,
-            classAssessment: classAssessment,
-            total: theTotal,
-        })
-
-        // if(ratedStudent){
-        //     let toBeDeleted = ratedStudent.map((i)=> i.week);
-        //     let highestValue = Math.max(...toBeDeleted);
-        //     if(toBeDeleted.includes(week)){
-        //         res.status(400).json({message: "week already saved"})
-        //     }else if(week > highestValue){
-        //         rating.week = week
-        //         user.weeklyRating = Math.round(theTotal * 10)/ 10;
-        //     }else{
-        //         rating.week = week
-        //     }
-        // }else{
-            rating.week = week
-            user.weeklyRating = Math.round(theTotal * 10)/ 10;
-        // }
-
-        user.allRatings.push(theTotal);
-        function sumArray(arr){
-            let sum = 0;
-            arr.forEach(item => {sum += item})
-            return sum
-        }
-        
-        
-        user.overallRating = Math.round(((sumArray(user.allRatings))/ user.allRatings.length)* 10)/10;
-        rating.student = user;
-        
-        user.save()
-        rating.save()
-        
-        res.status(200).json({message: `rated successfully`})
     }catch(err){
         next(ApiError.badRequest(`${err}`));
     }

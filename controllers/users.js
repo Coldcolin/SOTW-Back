@@ -136,6 +136,7 @@ const secondUpdate = async(req,res,next)=>{
             name: req.body.name || checkUser.name,
             password: req.body.password || checkUser.password,
             email: req.body.email || checkUser.email,
+            phone: req.body.phone || checkUser.phone
         }
 
         if(req.file){
