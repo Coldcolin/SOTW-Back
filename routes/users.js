@@ -1,5 +1,5 @@
 const express = require('express');
-const {createUser, upload, deleteUser, getUser, getOneUser, updateUser, secondUpdate, getUsers, loginUser,makeAlumni,makeStudent, forgotPassword, resetPassword} = require("../controllers/users.js");
+const {createUser, upload, deleteUser, getUser, getOneUser, updateUser, secondUpdate, getUsers, loginUser,makeAlumni,makeStudent, forgotPassword, resetPassword, updateAllUsersWeekStatus, resetWeeklyAssessments} = require("../controllers/users.js");
 const router = express.Router();
 
 router.post("/create",upload, createUser);
@@ -14,5 +14,7 @@ router.patch("/student/:id", makeStudent);
 router.post("/login", loginUser);
 router.post("/forgot", forgotPassword);
 router.patch("/reset/:id", resetPassword);
+router.patch('/update-all-week-status', updateAllUsersWeekStatus);
+router.put('/reset-assessments', resetWeeklyAssessments);
 
 module.exports = router;

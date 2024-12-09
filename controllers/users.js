@@ -338,6 +338,57 @@ const resetPassword = async(req, res, next)=>{
 
 }
 
+
+
+const updateAllUsersWeekStatus = async (req, res, next) => {
+    try {
+        const result = await userModel.updateMany(
+            {}, // empty filter to match all documents
+            { 
+                $set: { 
+                    week: 1,
+                    assessedForTheWeek: false 
+                } 
+            }
+        );
+        
+        res.status(200).json({
+            message: "All users updated successfully",
+            modifiedCount: result.modifiedCount
+        });
+    } catch (err) {
+        next(ApiError.badRequest(`${err}`));
+    }
+}
+
+const resetWeeklyAssessments = async (req, res, next) => {
+    try {
+        const today = new Date();
+        // Check if it's Friday (5 is Friday in getDay(), 0 is Sunday)
+        if (today.getDay() === 5) {
+            const result = await userModel.updateMany(
+                { assessedForTheWeek: true }, // only update documents where it's currently true
+                { $set: { assessedForTheWeek: false } }
+            );
+            
+            res.status(200).json({
+                message: "Weekly assessments reset successfully",
+                modifiedCount: result.modifiedCount
+            });
+        } else {
+            res.status(200).json({
+                message: "No reset needed - not Friday",
+                modifiedCount: 0
+            });
+        }
+    } catch (err) {
+        next(ApiError.badRequest(`${err}`));
+    }
+}
+
+
+
+
 module.exports ={
     createUser,
     upload,
@@ -351,5 +402,7 @@ module.exports ={
     makeAlumni,
     makeStudent,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    updateAllUsersWeekStatus,
+    resetWeeklyAssessments
 }
