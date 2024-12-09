@@ -15,6 +15,6 @@ router.post("/login", loginUser);
 router.post("/forgot", forgotPassword);
 router.patch("/reset/:id", resetPassword);
 router.patch('/update-all-week-status', updateAllUsersWeekStatus);
-router.put('/reset-assessments', resetWeeklyAssessments);
+router.patch('/reset-assessments', resetWeeklyAssessments);
 
 module.exports = router;
