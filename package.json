@@ -28,7 +28,7 @@
     "jsonwebtoken": "^8.5.1",
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
-    "mongoose": "^6.4.4",
+    "mongoose": "^6.13.5",
     "mongoose-paginate-v2": "^1.7.0",
     "multer": "^1.4.5-lts.1",
     "node-deep-email-validator": "^0.0.2",
