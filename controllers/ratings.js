@@ -84,6 +84,7 @@ const deleteRatings = async (req, res, next)=>{
                 return sum
             }
             student.overallRating = Math.round(((sumArray(student.allRatings))/ student.allRatings.length)* 10)/10;
+            // student.week = 
 
             await ratingsModel.findByIdAndDelete(ratingId);
 
@@ -96,6 +97,7 @@ const deleteRatings = async (req, res, next)=>{
             if (+week > highestValue){
                 student.weeklyRating = newHighest[0].total
             }
+            student.assessedForTheWeek = false;
             student.save()
             
             res.status(200).json({message: "Rating Deleted"});

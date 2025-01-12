@@ -14,8 +14,7 @@ app.use(express.json());
 
 //database collection
 const url = process.env.URL;
-// const url = 'mongodb+srv://ColinDecorce:0000colin0000@cluster0.2wuo14s.mongodb.net/?retryWrites=true&w=majority';
-// mongoose.set('strictQuery', false);
+
 mongoose.connect(url,{useUnifiedTopology: true, useNewUrlParser: true}).then(()=>{
     app.listen(PORT, ()=> console.log(`Server on ${PORT} now up and db connected...`))
 }).catch((err)=> console.log(`error connecting to db`));
