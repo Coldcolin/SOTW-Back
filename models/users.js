@@ -10,14 +10,17 @@ const userSchema = new mongoose.Schema({
     stack: {type:String, required: true},
     role: {type: String, required: true},
     cohort: {type: Number, required: true},
-    allRatings: {type: Array},
+    // allRatings: [{
+    //     week: { type: Number, required: true },
+    //     total: { type: Number, required: true } 
+    //   }],      
     overallRating: {type: Number},
     weeklyRating: {type: Number},
     nominated: {type: Boolean, default: false},
     studentOfTheWeek: {type: Boolean, default: false},
     bStudentOfTheWeek: {type: Boolean, default: false},
     position: {type: String},
-    week: {type: String, default: 0},
+    week: {type: Number, default: 0},
     assessedForTheWeek: {type: Boolean, default: false}
 }, {timestamps:true});
 
