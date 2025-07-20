@@ -24,7 +24,7 @@ const addRating = async(req, res, next)=>{
                 total: theTotal,
             })
                 rating.week = week
-                user.weeklyRating = Math.round(theTotal * 10)/ 10;
+                user.weeklyRating = theTotal;
 
             user.allRatings.push(theTotal);
             function sumArray(arr){
@@ -33,7 +33,7 @@ const addRating = async(req, res, next)=>{
                 return sum
             }
             
-            user.overallRating = Math.round(((sumArray(user.allRatings))/ user.allRatings.length)* 10)/10;
+            user.overallRating = ((sumArray(user.allRatings))/ user.allRatings.length);
             rating.student = user;
             user.assessedForTheWeek = true
             user.week = week
@@ -83,7 +83,7 @@ const deleteRatings = async (req, res, next)=>{
                 arr.forEach(item => {sum += item})
                 return sum
             }
-            student.overallRating = Math.round(((sumArray(student.allRatings))/ student.allRatings.length)* 10)/10;
+            student.overallRating = ((sumArray(student.allRatings))/ student.allRatings.length);
             // student.week = 
 
             await ratingsModel.findByIdAndDelete(ratingId);

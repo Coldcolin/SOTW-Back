@@ -14,7 +14,7 @@ app.use(express.json());
 
 //database collection
 const url = process.env.URL;
-
+// console.log(url)
 mongoose.connect(url,{useUnifiedTopology: true, useNewUrlParser: true}).then(()=>{
     app.listen(PORT, ()=> console.log(`Server on ${PORT} now up and db connected...`))
 }).catch((err)=> console.log(`error connecting to db`));
