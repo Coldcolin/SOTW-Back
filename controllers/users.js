@@ -57,6 +57,7 @@ const createUser = async(req, res, next)=>{
                 stack: req.body.stack,
                 password: hash,
                 cohort: req.body.cohort,
+                hub: req.body.hub,
                 role: req.body.role,
                 image: imageShow.secure_url,
                 imageId: imageShow.public_id
