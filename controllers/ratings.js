@@ -50,7 +50,7 @@ const addRating = async (req, res, next) => {
       rating.week = week;
       user.weeklyRating = Math.round(theTotal * 10) / 10;
 
-      user.allRatings.push(theTotal);
+      
       function sumArray(arr) {
         let sum = 0;
         arr.forEach((item) => {
@@ -66,8 +66,10 @@ const addRating = async (req, res, next) => {
       user.assessedForTheWeek = true;
       user.week = week;
 
-      user.save();
+      
       rating.save();
+      user.allRatings.push(rating._id);
+      user.save();
 
       res.status(200).json({ message: `rated successfully` });
     }
@@ -444,4 +446,5 @@ module.exports = {
   getRatings,
   deleteRatings,
   updateRating,
+  addRatings
 };
