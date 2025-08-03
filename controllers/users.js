@@ -303,7 +303,7 @@ const forgotPassword= async(req, res, next) => {
             </html>`, // html body
           });
         
-          console.log("Message sent: %s", info.messageId);
+          console.log("Message sent", info.messageId);
           res.status(200).send("successful")
 
     }catch(err){
