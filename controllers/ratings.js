@@ -127,6 +127,7 @@ const addRatings = async (req, res, next) => {
       student: studentId,
     });
     await rating.save();
+    
 
     student.allRatings.push(rating._id)
 
