@@ -349,7 +349,7 @@ const updateAllUsersWeekStatus = async (req, res, next) => {
             {}, // empty filter to match all documents
             { 
                 $set: { 
-                    week: 1,
+                    // week: 1,
                     assessedForTheWeek: false 
                 } 
             }
