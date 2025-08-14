@@ -4,26 +4,80 @@ const cors = require("cors");
 const mongoose = require("mongoose")
 const apiErrorHandler = require("./error/api-error-handler.js")
 const PORT = process.env.PORT || 6000
-//middleware
+const fileUpload = require("express-fileupload");
+const swaggerJsdoc = require("swagger-jsdoc")
+const swaggerDoc = require("swagger-ui-express")
+const bodyParser = require('body-parser');
+
+//middleware 
 const app = express();
 app.use(cors({
     origin: '*'
 }));
 app.use(express.json());
 
+//swagger 
 
+app.use(fileUpload({
+    useTempFiles: true,
+    limits:{ fileSize: 5 * 1024 * 1024 },
+    tempFileDir: '/tmp/',
+    debug: true,
+}));
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+
+const options = { 
+    definition: {
+      openapi: "3.1.0",
+      info: {
+        title: "Students App API's",
+        version: "0.1.0",
+        description:
+          "This is a simple CRUD API application made with Express and documented with Swagger",
+        license: {
+          name: "MIT",
+          url: "https://spdx.org/licenses/MIT.html",
+        },
+        contact: {
+          name: "LogRocket",
+          url: "https://logrocket.com",
+          email: "info@email.com",
+        },
+      },
+      servers: [
+        {
+          url: "http://localhost:4400",
+          description: 'Development server'
+        },
+      ],
+    },
+    apis: ["./router/*.js"],
+  };
+
+  const specs = swaggerJsdoc(options);
+app.use(
+  "/api-docs",
+  swaggerDoc.serve,
+  swaggerDoc.setup(specs, { explorer: true })
+);
+
+ 
 //database collection
 const url = process.env.URL;
 // console.log(url)
 mongoose.connect(url,{useUnifiedTopology: true, useNewUrlParser: true}).then(()=>{
     app.listen(PORT, ()=> console.log(`Server on ${PORT} now up and db connected...`))
-}).catch((err)=> console.log(`error connecting to db`));
+}).catch((err)=> console.log(`error connecting to db ${err}`));
 
 //to display in the browser
 app.get("/", async (req, res)=>{
     res.send("Student of the week platform")
 });
 
+const router = require('./routes/userRouter.js');
+app.use('/api/v1', router);
 
 //api routes
 app.use("/users", require("./routes/users.js"));

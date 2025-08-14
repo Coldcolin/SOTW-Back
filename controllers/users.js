@@ -184,10 +184,10 @@ const loginUser = async (req, res, next)=>{
                 }, 'IamTHeWorlSdBEstDEvEKOper$$$IWillBETHe$$GreAtesT', {expiresIn: "7d"});
                 res.status(200).json({message:"logged in", data: {...data, token}})
             }else{
-                res.status(400).json({error: `password: ${password} is incorrect`})
+                res.status(400).json({error: `Invalid credentials`})
             }
         }else{
-            res.status(404).json({error: `user with email :${email} is not found`})
+            res.status(404).json({error: `Invalid credentials`})
         }
     }catch(err){
         next(ApiError.badRequest(`${err}`))
