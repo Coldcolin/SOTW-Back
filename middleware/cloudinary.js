@@ -9,9 +9,9 @@ require("dotenv").config()
 // });
 
 cloudinary.config({ 
-    cloud_name: 'dw926cl8d',
-    api_key: '449628339752179', 
-    api_secret: 'Ud-ZQsiQm6zWVPnL3LUlcx6t4nI', 
+    cloud_name: process.env.cloud_name,
+    api_key: process.env.api_key, 
+    api_secret: process.env.api_secret, 
     secure: true 
   });
 
