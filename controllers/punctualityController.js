@@ -20,7 +20,7 @@ const checkIn = async (req, res) => {
         const today = new Date();
 
         //Checks if that day is Monday, Wednesday, or Friday (Days for classes)
-        if (today.getDay() === 4|| today.getDay() === 3 || today.getDay() === 5) {
+        if (today.getDay() === 1|| today.getDay() === 3 || today.getDay() === 5) {
             const userId = req.user.id;
             const user = await userModel.findById(userId);
             if (!user) {
