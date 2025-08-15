@@ -19,7 +19,6 @@ const userSchema = new mongoose.Schema({
     studentOfTheWeek: {type: Boolean, default: false},
     bStudentOfTheWeek: {type: Boolean, default: false},
     position: {type: String},
-    week: {type: Number, default: 0},
     hub: {type: String},
     week: {type: String, default: 0},
     assessedForTheWeek: {type: Boolean, default: false}
