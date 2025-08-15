@@ -13,80 +13,107 @@ const theAlgorithm ={
             const week = req.body.week
             //get all results for the week
             const resultsForWeek = await ratings.find().where("week").equals(`${week}`).populate("student");
+            if (resultsForWeek.length === 0){
+                return next(ApiError.badRequest("No results for this week"))
+            }
+            // console.log("resultsForWeek", resultsForWeek);
             //find students in the Front end
             const frontEndStudents = resultsForWeek.filter((result)=> (result?.student?.stack === "Front End") && (result?.student?.role === "student"));
             // //If there are no students
             if(frontEndStudents.length !== 0){
-                //Get array for all students scores
-                const arrayOfTotalScores = frontEndStudents.map((rating)=> rating?.student?.weeklyRating)
+                    //Get array for all students scores
+                    const arrayOfTotalScores = frontEndStudents.map((rating)=> rating.total)
+                // console.log("arrayOfTotalScores", arrayOfTotalScores);
                 //Find Highest Score
                 const highestScore = Math.max(...arrayOfTotalScores);
+                // console.log("highestScore", highestScore);
                 //Check if more than one student gets the Highest score
                 const highScoreArray = arrayOfTotalScores.filter((score)=> score === highestScore)
+                // console.log("highScoreArray", highScoreArray);
                 //check if there is already a SOTW for that week
                 const check = await frontendSOTW.find().where("week").equals(`${week}`);
+                // console.log("check", check);
+                //If there is no SOTW for that week
                 if(check.length === 0){
                     //If the length of highScoreArray is 1, then make student SOTW else use other metrics
                     if(highScoreArray.length  === 1){
-                        //to get result with highest score
-                        const resultWithHighestScore = frontEndStudents.filter((result)=> result?.student?.weeklyRating === highestScore);
-                        //to get id of Student with highest score
-                        const studentId = resultWithHighestScore[0].student?._id
+                            //to get result with highest score
+                            const resultWithHighestScore = frontEndStudents.filter((result)=> result.total === highestScore);
+                            //to get id of Student with highest score
+                            const studentId = resultWithHighestScore[0].student?._id
                         //find student from data base
                         const student = await users.findById(studentId);
                         //create an instance for SOTW
                         const newSOW = await frontendSOTW({week: week});
                         //add student Id to SOTW document
                         newSOW.student = student;
-                        newSOW.save()
+                        // newSOW.save()
                         res.status(200).json({data: "Student Added"})
                     }else{
-                        //to get results with highest score
-                        const resultWithHighestScores = frontEndStudents.filter((result)=> result?.student?.weeklyRating === highestScore);
+                            //to get results with highest score
+                            const resultWithHighestScores = frontEndStudents.filter((result)=> result.total === highestScore);
+                            // console.log("resultWithHighestScores", resultWithHighestScores);
                         //check improvement for each student
                         if(week >= 2){
-                        const improvedStudents = resultWithHighestScores.filter((rating)=> {
-                            //to get the last two values in the allRatings array
-                            const values = rating?.student?.weeklyRating.slice(-2);
-                            return (values[1] > values[0])
-                        })
-
-                        if(improvedStudents.length >= 1){
-                            //to get id of Student with highest score
-                            const index = Math.floor(Math.random() * improvedStudents.length)
-                            // console.log(index)
-                            const studentId = improvedStudents[index].student?._id
-                            //find student from data base
-                            const student = await users.findById(studentId);
-                            //create an instance for SOTW
-                            const newSOW = await frontendSOTW({week: week});
-                            //add student Id to SOTW document
-                            newSOW.student = student;
-                            newSOW.save()
-                            res.status(200).json({data: "Student Added"})
-                        }else{
+                            // Find the most improved student in a single pass
+                            let maxImprovement = -Infinity;
+                            let mostImprovedStudents = [];
+                            for (const rating of resultWithHighestScores) {
+                                if (rating.student.allRatings && rating.student.allRatings.length >= 2) {
+                                    const ratingsId = rating.student.allRatings.slice(-2); // [previous, latest]
+                                    const values = await Promise.all(
+                                        ratingsId.map(async (ratingId) => {
+                                            const found = await ratings.findById(ratingId).lean().exec();
+                                            return found ? found.total : 0;
+                                        })
+                                    );
+                                    const improvement = values[1] - values[0];
+                                    if (values[1] > values[0]) {
+                                        if (improvement > maxImprovement) {
+                                            maxImprovement = improvement;
+                                            mostImprovedStudents = [rating];
+                                        } else if (improvement === maxImprovement) {
+                                            mostImprovedStudents.push(rating);
+                                        }
+                                    }
+                                }
+                            }
+                            if (mostImprovedStudents.length === 1) {
+                                const studentId = mostImprovedStudents[0].student?._id;
+                                const student = await users.findById(studentId);
+                                const newSOW = await frontendSOTW({week: week});
+                                newSOW.student = student;
+                                newSOW.save()
+                                res.status(200).json({data: "Student Added"});
+                            } else if (mostImprovedStudents.length > 1) {
+                                // console.log('mostImprovedStudents: ',mostImprovedStudents)
+                                // Pick randomly among most improved
+                                const index = Math.floor(Math.random() * mostImprovedStudents.length);
+                                const studentId = mostImprovedStudents[index].student?._id;
+                                const student = await users.findById(studentId);
+                                const newSOW = await frontendSOTW({week: week});
+                                newSOW.student = student;
+                                newSOW.save()
+                                res.status(200).json({data: "Student Added"});
+                            } else {
+                                // If no improved students, pick randomly from all candidates
+                                const index = Math.floor(Math.random() * resultWithHighestScores.length);
+                                const studentId = resultWithHighestScores[index].student?._id;
+                                const student = await users.findById(studentId);
+                                const newSOW = await frontendSOTW({week: week});
+                                newSOW.student = student;
+                                // newSOW.save()
+                                res.status(200).json({data: "Student Added"});
+                            }
+                        } else {
+                            // If week < 2, pick randomly from highest score candidates only
                             const index = Math.floor(Math.random() * resultWithHighestScores.length);
-                            const studentId = resultWithHighestScores[index].student?._id
-                            //find student from data base
+                            const studentId = resultWithHighestScores[index].student?._id;
                             const student = await users.findById(studentId);
-                            //create an instance for SOTW
                             const newSOW = await frontendSOTW({week: week});
-                            //add student Id to SOTW document
                             newSOW.student = student;
                             newSOW.save()
-                            res.status(200).json({data: "Student Added"})
-                        }
-                        }else{
-                            const index = Math.floor(Math.random() * frontEndStudents.length);
-                            const studentId = frontEndStudents[index].student?._id
-                            //find student from data base
-                            const student = await users.findById(studentId);
-                            //create an instance for SOTW
-                            const newSOW = await frontendSOTW({week: week});
-                            //add student Id to SOTW document
-                            newSOW.student = student;
-                            newSOW.save()
-                            res.status(200).json({data: "Student Added"})
+                            res.status(200).json({data: "Student Added"});
                         }
                     }
                 }else{
@@ -99,7 +126,6 @@ const theAlgorithm ={
         }catch(err){
             next(ApiError.badRequest(`${err}`))
         }
-
     },
     "chooseBackEndSOTW": async function(req, res, next){
         try{
