@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const {addRatings, getRatings, deleteRatings} = require("../controllers/ratings")
+const {addRatings, getRatings, deleteRatingss} = require("../controllers/ratings")
 
 router.post("/add/:id", addRatings);
 router.get("/get/:id", getRatings);
-router.delete("/delete/:studentId/:week", deleteRatings);
+router.delete("/delete/:studentId/:week", deleteRatingss);
 
 module.exports = router

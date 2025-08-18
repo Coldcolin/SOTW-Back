@@ -257,9 +257,9 @@ const deleteRatingss = async (req, res, next) => {
     await ratingsModel.findByIdAndDelete(ratingToBeDeleted._id);
 
      //here's where we remove all reference from student's allRatings. sharp!
-     student.allRatings = student.allRatings.filter(
-        (id) => id.toString() !==toBeDeleted._id.toString()
-    )
+   student.allRatings = student.allRatings.filter(
+    (id) => id.toString() !== ratingToBeDeleted._id.toString()
+  )
     const remainingRatings = await ratingsModel.find({ student: studentId });
 
     const validTotals = remainingRatings
@@ -370,6 +370,7 @@ const updateRating = async (req, res, next) => {
   }
 };
 
+// Current Function inline with the new rating system
 const updateRatings = async (req, res, next) => {
   try {
     const { studentId, week } = req.params;
@@ -402,6 +403,14 @@ const updateRatings = async (req, res, next) => {
     if (classAssessment !== undefined) rating.classAssessment = classAssessment;
     if (personalDefense !== undefined) rating.personalDefense = personalDefense;
 
+    // Fetch all ratings for recalculation
+    const ratings = await ratingsModel.find({ student: studentId });
+    const highestWeek = Math.max(...ratings.map((r) => r.week));
+    if (Number(week) !== highestWeek) {
+      return res.status(400).json({
+        message: `You can only edit the most recent week's rating (week: ${highestWeek})`
+      });
+    }
     // Recalculate total
     rating.total =
       (Number(rating.punctuality) +
@@ -410,30 +419,18 @@ const updateRatings = async (req, res, next) => {
         Number(rating.classAssessment) +
         Number(rating.personalDefense)) /
       5;
-
-    await rating.save();
-
-    // Fetch all ratings for recalculation
-    const ratings = await ratingsModel.find({ student: studentId });
-
     const totals = ratings.map((r) => r.total);
-
     student.overallRating = totals.length
       ? totals.reduce((a, b) => a + b, 0) / totals.length
       : 0;
 
-    const highestWeek = Math.max(...ratings.map((r) => r.week));
-       
-       if (Number(week) !== highestWeek) {
-        return res.status(400).json({
-          message: `You can only edit the most recent week's rating (week ${highestWeek})`
-        });
-      }
     const latestWeekRating = ratings.find((r) => r.week === highestWeek);
     student.weeklyRating = latestWeekRating ? latestWeekRating.total : 0;
+    student.assessedForTheWeek = true;
+    student.week = week;
 
+    await rating.save(); 
     await student.save();
-
     res
       .status(200)
       .json({ message: "Rating updated successfully", updatedRating: rating });
@@ -445,7 +442,7 @@ const updateRatings = async (req, res, next) => {
 module.exports = {
   addRating,
   getRatings,
-  deleteRatings,
+  deleteRatingss,
   updateRating,
   addRatings
 };

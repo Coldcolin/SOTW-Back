@@ -325,39 +325,36 @@ const theAlgorithm ={
     },
     "chooseStudentsOfTheMonth": async function(req, res, next){
         try{
-            //to get allRatings array for all current students per stack
-            const frontEndStudents = await users.find().where("role").equals("student").where("stack").equals("Front End").select('name allRatings');
-            const backEndStudents = await users.find().where("role").equals("student").where("stack").equals("Back End").select('name allRatings');
-            const productDesignStudents = await users.find().where("role").equals("student").where("stack").equals("Product Design").select('name allRatings');
-            //to get the name of each student and the commulative score for the last four weeks
-            function getLastFourElements(arr) {
-                // Check if the array has less than 4 elements
-                if (arr.length < 4) {
-                    return arr;
-                }
-                // Use slice to get the last 4 elements
-                return arr.slice(-4);
-                }
+            // Get all students per stack
+            const frontEndStudents = await users.find({ role: "student", stack: "Front End" }).select('name _id');
+            const backEndStudents = await users.find({ role: "student", stack: "Back End" }).select('name _id');
+            const productDesignStudents = await users.find({ role: "student", stack: "Product Design" }).select('name _id');
 
-            //create a new array with the containing objects withe the name, average and id properties, average being the the mean of the four scores
-            const checkingArrayFront = frontEndStudents.map((e)=>{
-                const lastFour = getLastFourElements(e.allRatings)
-                const sum = lastFour.reduce((p, e)=> p + e, 0);
-                const val = sum/lastFour.length;
-                return {id: e._id, name: e.name, average: val}
-            })
-            const checkingArrayBack = backEndStudents.map((e)=>{
-                const lastFour = getLastFourElements(e.allRatings)
-                const sum = lastFour.reduce((p, e)=> p + e, 0);
-                const val = sum/lastFour.length;
-                return {id: e._id, name: e.name, average: val}
-            })
-            const checkingArrayProduct = productDesignStudents.map((e)=>{
-                const lastFour = getLastFourElements(e.allRatings)
-                const sum = lastFour.reduce((p, e)=> p + e, 0);
-                const val = sum/lastFour.length;
-                return {id: e._id, name: e.name, average: val}
-            })
+            // Helper to get last four rating totals for a student
+            async function getLastFourTotals(studentId) {
+                const ratingsArr = await ratings.find({ student: studentId }).sort({ week: -1 }).limit(4);
+                return ratingsArr.map(r => r.total);
+            }
+
+            // Build array of {id, name, average} for each stack
+            const checkingArrayFront = await Promise.all(frontEndStudents.map(async (e) => {
+                const lastFour = await getLastFourTotals(e._id);
+                const sum = lastFour.reduce((p, v) => p + v, 0);
+                const val = lastFour.length ? sum / lastFour.length : 0;
+                return { id: e._id, name: e.name, average: val };
+            }));
+            const checkingArrayBack = await Promise.all(backEndStudents.map(async (e) => {
+                const lastFour = await getLastFourTotals(e._id);
+                const sum = lastFour.reduce((p, v) => p + v, 0);
+                const val = lastFour.length ? sum / lastFour.length : 0;
+                return { id: e._id, name: e.name, average: val };
+            }));
+            const checkingArrayProduct = await Promise.all(productDesignStudents.map(async (e) => {
+                const lastFour = await getLastFourTotals(e._id);
+                const sum = lastFour.reduce((p, v) => p + v, 0);
+                const val = lastFour.length ? sum / lastFour.length : 0;
+                return { id: e._id, name: e.name, average: val };
+            }));
 
 
             function getHighestAverage(arr) {
