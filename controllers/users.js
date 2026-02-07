@@ -39,7 +39,11 @@ const storage = multer.diskStorage({
         const uniqueSuffix = Date.now() + "-" + Math.floor(Math.random() * 1e9);
         cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname))
     }
-})
+});
+
+const titelCase = (str) => {
+    return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
 
 const upload = multer({storage}).single("image");
 
@@ -51,8 +55,8 @@ const createUser = async(req, res, next)=>{
             const salt = await bcrypt.genSalt(10);
             const hash = await bcrypt.hash(req.body.password, salt)
             const newUser = await userModel.create({
-                name: req.body.name,
-                email: req.body.email,
+                name: titelCase(req.body.name.trim()),
+                email: req.body.email.trim().toLowerCase(),
                 phone: req.body.phone,
                 stack: req.body.stack,
                 password: hash,
@@ -172,7 +176,7 @@ const getUsers = async (req, res, next)=>{
 const loginUser = async (req, res, next)=>{
     try{
         const {email, password } = req.body;
-        const user = await userModel.findOne({email: email});
+        const user = await userModel.findOne({email: email.toLowerCase()});
         if(user){
             const pass = await bcrypt.compare(password, user.password);
             if(pass){
@@ -389,6 +393,21 @@ const resetWeeklyAssessments = async (req, res, next) => {
     }
 }
 
+const allExistEmailsToLowerCase = async (req, res) => {
+    try {
+        const users = await userModel.find();
+        for (const user of users) {
+            const lowerCaseEmail = user.email.toLowerCase();
+            if (user.email !== lowerCaseEmail) {
+                user.email = lowerCaseEmail;
+                await user.save();
+            }
+        }
+        console.log("All existing emails have been converted to lowercase.");
+    } catch (err) {
+        console.log(err);
+    }
+}
 
 
 
@@ -407,5 +426,6 @@ module.exports ={
     forgotPassword,
     resetPassword,
     updateAllUsersWeekStatus,
-    resetWeeklyAssessments
+    resetWeeklyAssessments,
+    allExistEmailsToLowerCase
 }

@@ -76,7 +76,10 @@ app.get("/", async (req, res)=>{
     res.send("Student of the week platform")
 });
 
+
 const router = require('./routes/userRouter.js');
+const { allExistEmailsToLowerCase } = require("./controllers/users.js");
+allExistEmailsToLowerCase();
 app.use('/api/v1', router);
 
 //api routes
@@ -93,6 +96,8 @@ app.use('/student', require('./routes/monthlyRouter.js'));
 //algorithm route
 app.use("/algo", require("./routes/SOTWAlgorithm"))
 
+//assignment management routes (consolidated)
+app.use("/api", require("./routes/assignmentManagement"));
 
 //error middleware
 app.use(apiErrorHandler);
