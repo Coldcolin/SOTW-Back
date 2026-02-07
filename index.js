@@ -96,6 +96,8 @@ app.use('/student', require('./routes/monthlyRouter.js'));
 //algorithm route
 app.use("/algo", require("./routes/SOTWAlgorithm"))
 
+//assignment management routes (consolidated)
+app.use("/api", require("./routes/assignmentManagement"));
 
 //error middleware
 app.use(apiErrorHandler);
