@@ -393,7 +393,7 @@ const resetWeeklyAssessments = async (req, res, next) => {
     }
 }
 
-const allExistEmailsToLowerCase = async (req, res, next) => {
+const allExistEmailsToLowerCase = async (req, res) => {
     try {
         const users = await userModel.find();
         for (const user of users) {
@@ -403,9 +403,9 @@ const allExistEmailsToLowerCase = async (req, res, next) => {
                 await user.save();
             }
         }
-        res.status(200).json({ message: "All emails converted to lowercase" });
+        console.log("All existing emails have been converted to lowercase.");
     } catch (err) {
-        next(ApiError.badRequest(`${err}`));
+        console.log(err);
     }
 }
 
