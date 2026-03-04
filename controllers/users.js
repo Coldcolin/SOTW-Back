@@ -395,17 +395,26 @@ const resetWeeklyAssessments = async (req, res, next) => {
 
 const allExistEmailsToLowerCase = async (req, res) => {
     try {
-        const users = await userModel.find();
-        for (const user of users) {
-            const lowerCaseEmail = user.email.toLowerCase();
-            if (user.email !== lowerCaseEmail) {
-                user.email = lowerCaseEmail;
-                await user.save();
-            }
-        }
-        console.log("All existing emails have been converted to lowercase.");
+        // Update all users whose email is not lowercase
+        const result = await userModel.updateMany(
+            {
+                // Only match users whose email is not already lowercase
+                $expr: { $ne: ["$email", { $toLower: "$email" }] }
+            },
+            [
+                {
+                    $set: {
+                        email: { $toLower: "$email" }
+                    }
+                }
+            ]
+        );
+        console.log(`Modified ${result.modifiedCount} user emails to lowercase.`);
+        // res.status(200).json({ message: "All existing emails have been converted to lowercase.", modifiedCount: result.modifiedCount });
     } catch (err) {
-        console.log(err);
+        // Log error and respond, but do not crash
+        console.error("Error updating emails:", err.message);
+        // res.status(500).json({ error: "Some emails may not have been updated due to errors.", details: err.message });
     }
 }
 
