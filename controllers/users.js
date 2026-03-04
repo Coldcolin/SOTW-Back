@@ -395,26 +395,30 @@ const resetWeeklyAssessments = async (req, res, next) => {
 
 const allExistEmailsToLowerCase = async (req, res) => {
     try {
-        // Update all users whose email is not lowercase
-        const result = await userModel.updateMany(
-            {
-                // Only match users whose email is not already lowercase
-                $expr: { $ne: ["$email", { $toLower: "$email" }] }
-            },
-            [
-                {
-                    $set: {
-                        email: { $toLower: "$email" }
-                    }
+        const users = await userModel.find();
+        let updated = 0;
+        let failed = 0;
+        for (const user of users) {
+            const lowerCaseEmail = user.email.toLowerCase();
+            if (user.email !== lowerCaseEmail) {
+                try {
+                    await userModel.updateOne({ _id: user._id }, { $set: { email: lowerCaseEmail } });
+                    updated++;
+                } catch (err) {
+                    failed++;
+                    console.error(`Failed to update user ${user._id}:`, err.message);
                 }
-            ]
-        );
-        console.log(`Modified ${result.modifiedCount} user emails to lowercase.`);
-        // res.status(200).json({ message: "All existing emails have been converted to lowercase.", modifiedCount: result.modifiedCount });
+            }
+        }
+        console.log(`Emails updated: ${updated}, failed: ${failed}`);
+        if (res) {
+            res.status(200).json({ message: "Email lowercase conversion complete.", updated, failed });
+        }
     } catch (err) {
-        // Log error and respond, but do not crash
         console.error("Error updating emails:", err.message);
-        // res.status(500).json({ error: "Some emails may not have been updated due to errors.", details: err.message });
+        if (res) {
+            res.status(500).json({ error: "Some emails may not have been updated due to errors.", details: err.message });
+        }
     }
 }
 
