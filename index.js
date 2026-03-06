@@ -78,8 +78,7 @@ app.get("/", async (req, res)=>{
 
 
 const router = require('./routes/userRouter.js');
-const { allExistEmailsToLowerCase } = require("./controllers/users.js");
-allExistEmailsToLowerCase();
+
 app.use('/api/v1', router);
 
 //api routes
