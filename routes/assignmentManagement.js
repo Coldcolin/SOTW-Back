@@ -19,27 +19,27 @@ const {
     getSubmissionsByWeek,
     getSubmissionsByAssignment
 } = require("../controllers/assignmentManagementController");
-const { authenticate, admin } = require("../middleware/authentation");
+const { authenticate } = require("../middleware/authentation");
 
 // ============== ASSIGNMENT ROUTES ==============
 
 // Create assignment (tutors only)
-router.post("/assignments/create", authenticate, admin, createAssignment);
+router.post("/assignments/create", authenticate, createAssignment);
 
 // Get assignments by week and stack (for students)
 router.get("/assignments/week/:week", authenticate, getAssignmentsByWeekAndStack);
 
 // Get all assignments by week (for tutors)
-router.get("/assignments/week/:week/all", authenticate, admin, getAssignmentsByWeek);
+router.get("/assignments/week/:week/all", authenticate, getAssignmentsByWeek);
 
 // Get all assignments (for tutors)
-router.get("/assignments/all", authenticate, admin, getAllAssignments);
+router.get("/assignments/all", authenticate, getAllAssignments);
 
 // Update assignment
-router.patch("/assignments/:assignmentId", authenticate, admin, updateAssignment);
+router.patch("/assignments/:assignmentId", authenticate, updateAssignment);
 
 // Delete assignment
-router.delete("/assignments/:assignmentId", authenticate, admin, deleteAssignment);
+router.delete("/assignments/:assignmentId", authenticate, deleteAssignment);
 
 // ============== SUBMISSION ROUTES ==============
 
@@ -55,12 +55,12 @@ router.get("/submissions/:submissionId", authenticate, getSubmissionById);
 // ============== GRADING ROUTES ==============
 
 // Grade a submission (tutors only)
-router.patch("/grading/submission/:submissionId", authenticate, admin, gradeSubmission);
+router.patch("/grading/submission/:submissionId", authenticate, gradeSubmission);
 
 // Get submissions by week for grading (tutors only)
-router.get("/grading/week/:week", authenticate, admin, getSubmissionsByWeek);
+router.get("/grading/week/:week", authenticate, getSubmissionsByWeek);
 
 // Get submissions by assignment (tutors only)
-router.get("/grading/assignment/:assignmentId", authenticate, admin, getSubmissionsByAssignment);
+router.get("/grading/assignment/:assignmentId", authenticate, getSubmissionsByAssignment);
 
 module.exports = router;
