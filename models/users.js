@@ -12,7 +12,10 @@ const userSchema = new mongoose.Schema({
     cohort: {type: Number, required: true},  
     allRatings:[{
       type: mongoose.Schema.Types.ObjectId, ref: "ratings"
-    }],    
+    }],  
+    assignments:  [{
+      type: mongoose.Schema.Types.ObjectId, ref: "AssignmentSubmission"
+    }], 
     overallRating: {type: Number},
     weeklyRating: {type: Number},
     nominated: {type: Boolean, default: false},
