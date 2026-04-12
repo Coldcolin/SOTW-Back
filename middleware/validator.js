@@ -1,4 +1,4 @@
-const joi = require('@hapi/joi');
+const joi =  require  ('@hapi/joi');
 
 const validateUser = (data) => {
     try {
@@ -73,8 +73,86 @@ const validateUserLocation = (data) => {
 }
 
 
+
+ const validateStudent = (data) => {
+  const schema = joi.object({
+    name: joi.string()
+      .trim()
+      .min(2)
+      .max(50)
+      .required()
+      .messages({
+        "string.empty": "Name is required",
+        "string.min": "Name must be at least 2 characters",
+        "string.required":" Name is required"
+      }),
+
+    email: joi.string()
+      .trim()
+      .email()
+      .lowercase()
+      .required()
+      .messages({
+        "string.email": "Invalid email format",
+        "string.empty": "Email is required",
+      }),
+
+    phone: joi.string()
+      .pattern(/^[0-9]{10,15}$/)
+      .required()
+      .messages({
+        "string.pattern.base":
+          "Phone must be between 10–15 digits",
+      }),
+
+    stack: joi.string()
+      .valid("backend", "frontend", "product design")
+      .required()
+      .messages({
+        "any.only": "Stack must be backend, frontend or product design",
+      }),
+
+    password: joi.string()
+      .min(8)
+      .required()
+      .messages({
+        "string.min": "Password must be at least 8 characters",
+      }),
+
+    hub: joi.string()
+     .valid("hq","festac")
+      .required()
+      .messages({
+        "any.only": "Hub must be Hq or Festac",
+      }),
+  });
+
+  return schema.validate(data,);
+};
+const validateLogin = (data) => {
+  const schema = joi.object({
+    email: joi.string()
+      .trim()
+      .email()
+      .required()
+      .messages({
+        "string.empty": "Email is required",
+        "string.email": "Enter a valid email",
+      }),
+
+    password: joi.string()
+      .required()
+      .messages({
+        "string.empty": "Password is required",
+      }),
+  });
+
+  return schema.validate(data); 
+}
 module.exports = {
     validateUser,
     validateUserLogin,
     validateUserLocation,
+    validateStudent,
+    validateLogin
 }

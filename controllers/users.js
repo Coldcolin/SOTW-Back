@@ -12,7 +12,10 @@ const nodemailer = require("nodemailer");
 const { error } = require("console");
 const crypto = require('crypto');
 const cloudinary = require("cloudinary").v2;
-
+const fs = require("fs")
+const {validateStudent,validateLogin} = require("../middleware/validator.js")
+const AssignmentSubmission =require("../models/AssignmentSubmission.js")
+const Assignment = require("../models/Assignment.js")
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -25,9 +28,9 @@ const transporter = nodemailer.createTransport({
   });
 
 cloudinary.config({ 
-    cloud_name: 'dw926cl8d',
-    api_key: '449628339752179', 
-    api_secret: 'Ud-ZQsiQm6zWVPnL3LUlcx6t4nI', 
+    cloud_name: process.env.cloud_name ,
+    api_key: process.env.cloud_apiKey , 
+    api_secret: process.env.api_secret  , 
     secure: true 
   });
 
@@ -47,146 +50,112 @@ const titelCase = (str) => {
 
 const upload = multer({storage}).single("image");
 
-const createUser = async(req, res, next)=>{
-    try{
-        // const valid = await validateEmail(req.body.email);
-        const imageShow = await cloudinary.uploader.upload(req.file.path)
-        // if(valid.result){
-            const salt = await bcrypt.genSalt(10);
-            const hash = await bcrypt.hash(req.body.password, salt)
-            const newUser = await userModel.create({
-                name: titelCase(req.body.name.trim()),
-                email: req.body.email.trim().toLowerCase(),
-                phone: req.body.phone,
-                stack: req.body.stack,
-                password: hash,
-                cohort: req.body.cohort,
-                hub: req.body.hub,
-                role: req.body.role,
-                image: imageShow.secure_url,
-                imageId: imageShow.public_id
-            });
-            // fs.unlinkSync(req.file.path);
-            res.status(201).json({data: newUser});
-        // }else{
-        //     res.status(400).json({error: valid.failReason});
-        // }
-    }catch(err){
-        next(ApiError.badRequest(`${err}`))
-        console.error(err)
+const createUser = async (req, res, next) => {
+  let filePath = null;
+
+  try {
+        filePath = req.file.path;
+
+    const cohort = process.env.cohort;
+
+    if (!cohort) {
+      return next(ApiError.badRequest("Cohort not found"));
     }
+
+    const { error } = validateStudent(req.body);
+if (error) {
+  const err = error.details[0];
+
+   if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+  return res.status(400).json({
+    status: false,
+    field: err.path[0],
+    message: err.message.replace(/"/g, ""),
+  });
+
 }
 
-const deleteUser = async(req, res, next)=>{
-    try{
-        const Id = req.params.id;
-        const user = await userModel.findById(Id);
-        await cloudinary.uploader.destroy(user.imageId);
-        await user.remove()
-        res.status(200).json({msg: 'deleted'})
-    }catch(err){
-        next(ApiError.badRequest(`${err}`))
+    if (!filePath) {
+      return next(ApiError.badRequest("Profile picture is required"));
     }
-}
 
-const getUser = async (req, res, next)=>{
-    try{
-        const id = req.params.id;
-        const user = await userModel.findById(id);
-        res.status(200).json({data: user})
-    }catch(err){
-        next(ApiError.badRequest(`${err}`))
+
+    const hash = await bcrypt.hash(req.body.password, 10);
+
+    const imageShow = await cloudinary.uploader.upload(filePath);
+
+    const newUser = await userModel.create({
+      name: titelCase(req.body.name.trim()),
+      email: req.body.email.trim().toLowerCase(),
+      phone: req.body.phone,
+      stack: req.body.stack,
+      password: hash,
+      cohort,
+      role:"student",
+      hub: req.body.hub,
+      image: imageShow.secure_url,
+      imageId: imageShow.public_id,
+    });
+
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
     }
-}
 
-const getOneUser = async (req, res, next)=>{
-    try{
-        const id = req.params.id;
-        const user = await userModel.findById(id);
-        res.status(200).json({data: user})
-    }catch(err){
-        next(ApiError.badRequest(`${err}`))
+    res.status(201).json({
+      status: true,
+      data: newUser,
+    });
+
+  } catch (err) {
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
     }
-}
+      if (err.code === 11000) {
+    const field = Object.keys(err.keyValue)[0];
 
-const updateUser = async (req, res, next)=>{
-    try{
-        const id = req.params.id;
-        const userWho = await userModel.findById(id);
-        let imageShow;
-        if(req.file.path){
-            await cloudinary.uploader.destroy(userWho.imageId);
-            imageShow = await cloudinary.uploader.upload(req.file.path)
-        }
-        // const imageShow = await cloudinary.uploader.upload(req.file.path)
-        const user = await userModel.findByIdAndUpdate(id, {
-            name: req.body.name || userWho.name,
-            image: imageShow.secure_url || userWho.image,
-            imageId: imageShow.public_id || userWho.imageId,
-            phone: req.body.phone || userWho.phone
-        }, {new: true});
-        res.status(200).json({data: user});
-    }catch(err){
-        next(ApiError.badRequest(`${err}`))
-    }
-}
+    return res.status(400).json({
+      status: false,
+      field,
+      message: `${field} already exists`,
+    });
+  }
 
-const secondUpdate = async(req,res,next)=>{
-    try {
-        const id = req.params.id
-        const checkUser = await userModel.findById(id)
-        if (!checkUser) {
-            return res.status(404).json('User not Found');
-        }
+    console.error(err);
+    next(ApiError.badRequest(err.message));
+  }
+};
 
-        const Data={
-            name: req.body.name || checkUser.name,
-            password: req.body.password || checkUser.password,
-            email: req.body.email || checkUser.email,
-            phone: req.body.phone || checkUser.phone
-        }
 
-        if(req.file){
-           // Data.image = path.join('/uploads', req.file.filename); OR
-            Data.image = req.file.path //cloudinary provide the image URL in req.file.path
-        } else {
-            Data.image= checkUser.image;
-        }
-        if(req.body.password){
-            const salt = await bcrypt.gensync(10)
-            Data.password = await bcrypt.hash(req.body.password, salt)
-        } else{
-            Data.password = checkUser.password
-        }
-        const updatedDetails = await userModel.findByIdAndUpdate(id, Data, { new: true });
-        res.status(200).json({message: "Details Updated"})
-    } catch (err) {
-        next(ApiError.badRequest(`${err}`))
-    }
-}
-const getUsers = async (req, res, next)=>{
-    try{
-        const users = await userModel.find();
-        res.status(200).json({data: users})
-    }catch(err){
-        next(ApiError.badRequest(`${err}`))
-    }
-}
 
 const loginUser = async (req, res, next)=>{
     try{
+
+        
+            const { error } =validateLogin (req.body);
+if (error) {
+  const err = error.details[0];
+
+ 
+  return res.status(400).json({
+    status: false,
+    field: err.path[0],
+    message: err.message.replace(/"/g, ""),
+  });
+
+}
         const {email, password } = req.body;
         const user = await userModel.findOne({email: email.toLowerCase()});
         if(user){
             const pass = await bcrypt.compare(password, user.password);
             if(pass){
-                const {password, ...data} = user._doc
                 const token = jwt.sign({
                     id: user._id,
-                    email: user.email,
                     stack: user.stack,
-                }, 'IamTHeWorlSdBEstDEvEKOper$$$IWillBETHe$$GreAtesT', {expiresIn: "7d"});
-                res.status(200).json({message:"logged in", data: {...data, token}})
+                }, process.env.jwtSecret, {expiresIn: "1d"});
+                res.status(200).json({message:"logged in", data: { token,stack: user.stack,hub:user.hub}})
             }else{
                 res.status(400).json({error: `Invalid credentials`})
             }
@@ -194,33 +163,59 @@ const loginUser = async (req, res, next)=>{
             res.status(404).json({error: `Invalid credentials`})
         }
     }catch(err){
-        next(ApiError.badRequest(`${err}`))
+        next(ApiError.badRequest(`${err.message}`))
     }
 }
 
-const makeAlumni = async(req, res, next)=>{
-    try{
-        const id = req.params.id;
-        const user = await userModel.findByIdAndUpdate(id, {
-            role: "alumni",
-        }, {new: true});
-        res.status(200).json({message: "successfully made an Alumni"});
-    }catch(err){
-        next(ApiError.badRequest(`${err}`))
-    }
-}
-const makeStudent = async(req, res, next)=>{
-    try{
-        const id = req.params.id;
-        const user = await userModel.findByIdAndUpdate(id, {
-            role: "student",
-        }, {new: true});
-        res.status(200).json({message: "successfully made an Alumni"});
-    }catch(err){
-        next(ApiError.badRequest(`${err}`))
-    }
-}
 
+const studentDashboard = async (req, res, next) => {
+  try {
+    const studentId = req.user.id;
+
+    const student = await userModel.findById(studentId).select(
+      "name email image stack"
+    );
+
+    const submissions = await AssignmentSubmission.find({
+      student: studentId,
+    }).populate("Assignment");
+
+    const assignments = await Assignment.find({
+      stack: student.stack,
+    });
+
+    const completed = submissions.length;
+
+    const submittedAssignmentIds = submissions.map((s) =>
+      s.assignment._id.toString()
+    );
+
+    const pending = assignments.filter(
+      (a) => !submittedAssignmentIds.includes(a._id.toString())
+    ).length;
+
+    const graded = submissions.filter((s) => s.grade !== undefined);
+
+    const avgScore =
+      graded.length > 0
+        ? (
+            graded.reduce((acc, curr) => acc + curr.grade, 0) /
+            graded.length
+          ).toFixed(1)
+        : 0;
+
+    res.status(200).json({
+      student,
+      stats: {
+        avgScore,
+        completed,
+        pending,
+      },
+    });
+  } catch (err) {
+    next(ApiError.badRequest(err.message));
+  }
+};
 
 const forgotPassword= async(req, res, next) => {
     try{
@@ -423,6 +418,126 @@ const allExistEmailsToLowerCase = async (req, res) => {
 }
 
 
+const deleteUser = async(req, res, next)=>{
+    try{
+        const Id = req.params.id;
+        const user = await userModel.findById(Id);
+        await cloudinary.uploader.destroy(user.imageId);
+        await user.remove()
+        res.status(200).json({msg: 'deleted'})
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
+
+const getUser = async (req, res, next)=>{
+    try{
+        const id = req.params.id;
+        const user = await userModel.findById(id);
+        res.status(200).json({data: user})
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
+
+const getOneUser = async (req, res, next)=>{
+    try{
+        const id = req.user.id;
+        const user = await userModel.findById(id);
+        res.status(200).json({data: user})
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
+
+const updateUser = async (req, res, next)=>{
+    try{
+        const id = req.params.id;
+        const userWho = await userModel.findById(id);
+        let imageShow;
+        if(req.file.path){
+            await cloudinary.uploader.destroy(userWho.imageId);
+            imageShow = await cloudinary.uploader.upload(req.file.path)
+        }
+        // const imageShow = await cloudinary.uploader.upload(req.file.path)
+        const user = await userModel.findByIdAndUpdate(id, {
+            name: req.body.name || userWho.name,
+            image: imageShow.secure_url || userWho.image,
+            imageId: imageShow.public_id || userWho.imageId,
+            phone: req.body.phone || userWho.phone
+        }, {new: true});
+        res.status(200).json({data: user});
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
+
+const secondUpdate = async(req,res,next)=>{
+    try {
+        const id = req.params.id
+        const checkUser = await userModel.findById(id)
+        if (!checkUser) {
+            return res.status(404).json('User not Found');
+        }
+
+        const Data={
+            name: req.body.name || checkUser.name,
+            password: req.body.password || checkUser.password,
+            email: req.body.email || checkUser.email,
+            phone: req.body.phone || checkUser.phone
+        }
+
+        if(req.file){
+           // Data.image = path.join('/uploads', req.file.filename); OR
+            Data.image = req.file.path //cloudinary provide the image URL in req.file.path
+        } else {
+            Data.image= checkUser.image;
+        }
+        if(req.body.password){
+            const salt = await bcrypt.gensync(10)
+            Data.password = await bcrypt.hash(req.body.password, salt)
+        } else{
+            Data.password = checkUser.password
+        }
+        const updatedDetails = await userModel.findByIdAndUpdate(id, Data, { new: true });
+        res.status(200).json({message: "Details Updated"})
+    } catch (err) {
+        next(ApiError.badRequest(`${err}`))
+    }
+}
+const getUsers = async (req, res, next)=>{
+    try{
+        const users = await userModel.find();
+        res.status(200).json({data: users})
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
+
+
+
+const makeAlumni = async(req, res, next)=>{
+    try{
+        const id = req.params.id;
+        const user = await userModel.findByIdAndUpdate(id, {
+            role: "alumni",
+        }, {new: true});
+        res.status(200).json({message: "successfully made an Alumni"});
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
+const makeStudent = async(req, res, next)=>{
+    try{
+        const id = req.params.id;
+        const user = await userModel.findByIdAndUpdate(id, {
+            role: "student",
+        }, {new: true});
+        res.status(200).json({message: "successfully made an Alumni"});
+    }catch(err){
+        next(ApiError.badRequest(`${err}`))
+    }
+}
 
 module.exports ={
     createUser,
@@ -440,5 +555,6 @@ module.exports ={
     resetPassword,
     updateAllUsersWeekStatus,
     resetWeeklyAssessments,
-    allExistEmailsToLowerCase
+    allExistEmailsToLowerCase,
+    studentDashboard
 }
