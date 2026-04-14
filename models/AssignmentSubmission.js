@@ -21,6 +21,15 @@ const assignmentSubmissionSchema = new mongoose.Schema({
             message: 'Please provide a valid URL'
         }
     },
+    feedback: {
+        type: String,
+        trim: true, 
+    },
+    status: {
+        type: String,
+        enum: ["Pending", "Graded"],
+        default: "Pending"
+    },
     submittedAt: {
         type: Date,
         default: Date.now
