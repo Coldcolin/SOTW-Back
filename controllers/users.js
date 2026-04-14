@@ -185,6 +185,7 @@ const loginUser = async (req, res, next)=>{
                     id: user._id,
                     email: user.email,
                     stack: user.stack,
+                    role: user.role,
                 }, 'IamTHeWorlSdBEstDEvEKOper$$$IWillBETHe$$GreAtesT', {expiresIn: "7d"});
                 res.status(200).json({message:"logged in", data: {...data, token}})
             }else{
@@ -215,7 +216,7 @@ const makeStudent = async(req, res, next)=>{
         const user = await userModel.findByIdAndUpdate(id, {
             role: "student",
         }, {new: true});
-        res.status(200).json({message: "successfully made an Alumni"});
+        res.status(200).json({message: "successfully made a student"});
     }catch(err){
         next(ApiError.badRequest(`${err}`))
     }
