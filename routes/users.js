@@ -1,5 +1,6 @@
 const express = require('express');
-const {createUser, upload, deleteUser, getUser, getOneUser, updateUser, secondUpdate, getUsers, loginUser,makeAlumni,makeStudent, forgotPassword, resetPassword, updateAllUsersWeekStatus, resetWeeklyAssessments} = require("../controllers/users.js");
+const {createUser, upload, studentDashboard, deleteUser, getUser, getOneUser, updateUser, secondUpdate, getUsers, loginUser,makeAlumni,makeStudent, forgotPassword, resetPassword, updateAllUsersWeekStatus, resetWeeklyAssessments} = require("../controllers/users.js");
+const { authenticate } = require('../middleware/authentation.js');
 const router = express.Router();
 
 router.post("/create",upload, createUser);
@@ -16,5 +17,5 @@ router.post("/forgot", forgotPassword);
 router.patch("/reset/:id", resetPassword);
 router.patch('/update-all-week-status', updateAllUsersWeekStatus);
 router.patch('/reset-assessments', resetWeeklyAssessments);
-
+router.get("/dashboard", authenticate,studentDashboard)
 module.exports = router;
