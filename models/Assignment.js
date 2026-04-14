@@ -17,7 +17,7 @@ const assignmentSchema = new mongoose.Schema({
     stack: {
         type: String,
         required: true,
-        enum: ["Front End", "Back End", "Product Design"]
+        enum: ["Front End", "Back End", "Product Design", 'General']
     },
     dueDateTime: {
         type: Date,
