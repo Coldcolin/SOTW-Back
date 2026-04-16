@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
     assignments:  [{
       type: mongoose.Schema.Types.ObjectId, ref: "AssignmentSubmission"
     }], 
+    bio:{type:String},
     overallRating: {type: Number},
     weeklyRating: {type: Number},
     nominated: {type: Boolean, default: false},

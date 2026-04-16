@@ -94,6 +94,7 @@ if (error) {
       stack: req.body.stack,
       password: hash,
       cohort,
+      bio:req.body.bio,
       role:"student",
       hub: req.body.hub,
       image: imageShow.secure_url,
