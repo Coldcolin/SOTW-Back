@@ -155,7 +155,7 @@ if (error) {
                     id: user._id,
                     stack: user.stack,
                     role: user.role
-                }, process.env.jwtSecret, {expiresIn: "1d"});
+                }, process.env.secret_key, {expiresIn: "1d"});
                 res.status(200).json({message:"logged in", data: { token,stack: user.stack,hub:user.hub}})
             }else{
                 res.status(400).json({error: `Invalid credentials`})
