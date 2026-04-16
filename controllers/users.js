@@ -155,7 +155,8 @@ if (error) {
                 const token = jwt.sign({
                     id: user._id,
                     stack: user.stack,
-                }, process.env.jwtSecret, {expiresIn: "1d"});
+                    role: user.role
+                }, process.env.secret_key, {expiresIn: "1d"});
                 res.status(200).json({message:"logged in", data: { token,stack: user.stack,hub:user.hub}})
             }else{
                 res.status(400).json({error: `Invalid credentials`})
@@ -534,7 +535,7 @@ const makeStudent = async(req, res, next)=>{
         const user = await userModel.findByIdAndUpdate(id, {
             role: "student",
         }, {new: true});
-        res.status(200).json({message: "successfully made an Alumni"});
+        res.status(200).json({message: "successfully made a Student"});
     }catch(err){
         next(ApiError.badRequest(`${err}`))
     }
