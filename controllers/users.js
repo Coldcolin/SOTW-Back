@@ -174,7 +174,7 @@ const studentDashboard = async (req, res, next) => {
     const studentId = req.user.id;
 
     const student = await userModel.findById(studentId).select(
-      "name email image stack"
+      "name email image stack bio"
     );
 
     const submissions = await AssignmentSubmission.find({
