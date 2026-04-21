@@ -48,7 +48,6 @@ const titelCase = (str) => {
     return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
-const upload = multer({storage}).single("image");
 
 const createUser = async (req, res, next) => {
   let filePath = null;
