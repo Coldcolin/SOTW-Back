@@ -542,7 +542,6 @@ const makeStudent = async(req, res, next)=>{
 
 module.exports ={
     createUser,
-    upload,
     deleteUser,
     getUser,
     getOneUser,
