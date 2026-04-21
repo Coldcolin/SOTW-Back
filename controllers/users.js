@@ -54,7 +54,7 @@ const createUser = async (req, res, next) => {
   let filePath = null;
 
   try {
-        filePath = req.file.path;
+    filePath = req.file?.path || null;
 
     const cohort = process.env.cohort;
 
@@ -63,25 +63,23 @@ const createUser = async (req, res, next) => {
     }
 
     const { error } = validateStudent(req.body);
-if (error) {
-  const err = error.details[0];
+    if (error) {
+      const err = error.details[0];
 
-   if (filePath && fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+      if (filePath && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+
+      return res.status(400).json({
+        status: false,
+        field: err.path[0],
+        message: err.message.replace(/"/g, ""),
+      });
     }
-
-  return res.status(400).json({
-    status: false,
-    field: err.path[0],
-    message: err.message.replace(/"/g, ""),
-  });
-
-}
 
     if (!filePath) {
       return next(ApiError.badRequest("Profile picture is required"));
     }
-
 
     const hash = await bcrypt.hash(req.body.password, 10);
 
@@ -94,8 +92,8 @@ if (error) {
       stack: req.body.stack,
       password: hash,
       cohort,
-      bio:req.body.bio,
-      role:"student",
+      bio: req.body.bio,
+      role: "student",
       hub: req.body.hub,
       image: imageShow.secure_url,
       imageId: imageShow.public_id,
@@ -105,7 +103,7 @@ if (error) {
       fs.unlinkSync(filePath);
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       status: true,
       data: newUser,
     });
@@ -114,18 +112,20 @@ if (error) {
     if (filePath && fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-      if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
 
-    return res.status(400).json({
-      status: false,
-      field,
-      message: `${field} already exists`,
-    });
-  }
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyValue)[0];
 
-    console.error(err);
-    next(ApiError.badRequest(err.message));
+      return res.status(400).json({
+        status: false,
+        field,
+        message: `${field} already exists`,
+      });
+    }
+
+    console.error("FULL ERROR:", err);
+
+    return next(ApiError.badRequest(err.message || "Something went wrong"));
   }
 };
 
