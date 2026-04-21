@@ -1,9 +1,10 @@
 const express = require('express');
-const {createUser, upload, studentDashboard, deleteUser, getUser, getOneUser, updateUser, secondUpdate, getUsers, loginUser,makeAlumni,makeStudent, forgotPassword, resetPassword, updateAllUsersWeekStatus, resetWeeklyAssessments} = require("../controllers/users.js");
+const {createUser, studentDashboard, deleteUser, getUser, getOneUser, updateUser, secondUpdate, getUsers, loginUser,makeAlumni,makeStudent, forgotPassword, resetPassword, updateAllUsersWeekStatus, resetWeeklyAssessments} = require("../controllers/users.js");
 const { authenticate } = require('../middleware/authentation.js');
+const upload = require("../middleware/multer.js")
 const router = express.Router();
 
-router.post("/create",upload, createUser);
+router.post("/create",upload.single("image"), createUser);
 router.delete("/remove/:id", deleteUser)
 router.get("/getUser/:id", getUser);
 router.get("/oneUser/:id", getOneUser);
