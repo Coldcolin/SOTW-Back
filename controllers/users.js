@@ -552,14 +552,40 @@ const makeStudent = async(req, res, next)=>{
 }
 
 
+// const getDashboardStatchgecks = async () => {
+//   try {
+//     const students =  await  userModel.find({role: "student"}).countDocuments()
+//      const staffs = await userModel.find({role: "tutor"}).countDocuments()
+//       const alumnis = await userModel.countDocuments()
+    
+//    const allStudents = await userModel
+//       .findOne({email:""})
+//       .select("-password")
+//       .sort({ createdAt: -1 });
 
+// console.log("hi", allStudents)
+
+
+//     console.log({
+//       students,
+//       staffs,
+//       alumnis,
+//     })
+//   }
+//     catch (error) {
+//       throw error;
+//     } 
+// };
+   
+// getDashboardStatchgecks();
 
 const getDashboardStats = async (req, res, next) => {
   try {
     const [students, staffs, alumnis] = await Promise.all([
-      userModel.countDocuments(),
-      tutorModel.countDocuments(),
-      alumniModel.countDocuments(),
+      userModel.find({ role: "student" }).countDocuments(),
+      userModel.find({ role: "tutor" }).countDocuments(), 
+        userModel.find({role: "alumni"}).countDocuments()
+    
     ]);
 
     res.status(200).json({
@@ -577,7 +603,7 @@ const getDashboardStats = async (req, res, next) => {
 const getAllStudents = async (req, res, next) => {
   try {
     const students = await userModel
-      .find()
+      .find({role: "student"})
       .select("-password")
       .sort({ createdAt: -1 });
 
@@ -593,8 +619,8 @@ const getAllStudents = async (req, res, next) => {
 
 const getAllStaffs = async (req, res, next) => {
   try {
-    const staffs = await tutorModel
-      .find()
+    const staffs = await userModel
+      .find({ role: "tutor" })
       .select("-password")
       .sort({ createdAt: -1 });
 
@@ -610,8 +636,8 @@ const getAllStaffs = async (req, res, next) => {
 
 const getAllAlumnis = async (req, res, next) => {
   try {
-    const alumnis = await alumniModel
-      .find()
+    const alumnis = await userModel
+      .find({ role: "alumni" })
       .select("-password")
       .sort({ createdAt: -1 });
 
@@ -647,7 +673,7 @@ const getSingleStudent = async (req, res, next) => {
 
 const getSingleStaff = async (req, res, next) => {
   try {
-    const staff = await tutorModel
+    const staff = await userModel
       .findById(req.params.id)
       .populate("rating");
 
@@ -666,7 +692,7 @@ const getSingleStaff = async (req, res, next) => {
 
 const getSingleAlumni = async (req, res, next) => {
   try {
-    const alumni = await alumniModel
+    const alumni = await userModel
       .findById(req.params.id)
       .select("-password");
 
