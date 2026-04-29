@@ -16,6 +16,10 @@ const fs = require("fs")
 const {validateStudent,validateLogin} = require("../middleware/validator.js")
 const AssignmentSubmission =require("../models/AssignmentSubmission.js")
 const Assignment = require("../models/Assignment.js")
+
+const alumniModel = require("../models/Alumni");
+const tutorModel = require("../models/tutors");
+
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -547,6 +551,138 @@ const makeStudent = async(req, res, next)=>{
     }
 }
 
+
+
+
+const getDashboardStats = async (req, res, next) => {
+  try {
+    const [students, staffs, alumnis] = await Promise.all([
+      userModel.countDocuments(),
+      tutorModel.countDocuments(),
+      alumniModel.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        students,
+        staffs,
+        alumnis,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const getAllStudents = async (req, res, next) => {
+  try {
+    const students = await userModel
+      .find()
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: students.length,
+      data: students,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAllStaffs = async (req, res, next) => {
+  try {
+    const staffs = await tutorModel
+      .find()
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: staffs.length,
+      data: staffs,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAllAlumnis = async (req, res, next) => {
+  try {
+    const alumnis = await alumniModel
+      .find()
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: alumnis.length,
+      data: alumnis,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSingleStudent = async (req, res, next) => {
+  try {
+    const student = await userModel
+      .findById(req.params.id)
+      .select("-password")
+      .populate("allRatings assignments");
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: student,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSingleStaff = async (req, res, next) => {
+  try {
+    const staff = await tutorModel
+      .findById(req.params.id)
+      .populate("rating");
+
+    if (!staff) {
+      return res.status(404).json({ message: "Staff not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: staff,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSingleAlumni = async (req, res, next) => {
+  try {
+    const alumni = await alumniModel
+      .findById(req.params.id)
+      .select("-password");
+
+    if (!alumni) {
+      return res.status(404).json({ message: "Alumni not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: alumni,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports ={
     createUser,
     deleteUser,
@@ -563,5 +699,12 @@ module.exports ={
     updateAllUsersWeekStatus,
     resetWeeklyAssessments,
     allExistEmailsToLowerCase,
-    studentDashboard
+    studentDashboard,
+    getDashboardStats,
+    getAllStaffs,
+getAllStudents,
+getAllAlumnis,
+getSingleStudent,
+getSingleStaff,
+getSingleAlumni,
 }

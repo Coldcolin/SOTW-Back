@@ -308,6 +308,7 @@ const checkIn = async (req, res) => {
 
       const response = await fetch(apiUrl, {
         headers: {
+            
           'User-Agent': 'student-checkin-app/1.0 (hecurvesotw@gmail.com)',
           'Accept': 'application/json'
         }
