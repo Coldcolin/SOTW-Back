@@ -16,6 +16,10 @@ const fs = require("fs")
 const {validateStudent,validateLogin} = require("../middleware/validator.js")
 const AssignmentSubmission =require("../models/AssignmentSubmission.js")
 const Assignment = require("../models/Assignment.js")
+
+const alumniModel = require("../models/Alumni");
+const tutorModel = require("../models/tutors");
+
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -48,13 +52,12 @@ const titelCase = (str) => {
     return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
-const upload = multer({storage}).single("image");
 
 const createUser = async (req, res, next) => {
   let filePath = null;
 
   try {
-        filePath = req.file.path;
+    filePath = req.file?.path || null;
 
     const cohort = process.env.cohort;
 
@@ -63,25 +66,23 @@ const createUser = async (req, res, next) => {
     }
 
     const { error } = validateStudent(req.body);
-if (error) {
-  const err = error.details[0];
+    if (error) {
+      const err = error.details[0];
 
-   if (filePath && fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+      if (filePath && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+
+      return res.status(400).json({
+        status: false,
+        field: err.path[0],
+        message: err.message.replace(/"/g, ""),
+      });
     }
-
-  return res.status(400).json({
-    status: false,
-    field: err.path[0],
-    message: err.message.replace(/"/g, ""),
-  });
-
-}
 
     if (!filePath) {
       return next(ApiError.badRequest("Profile picture is required"));
     }
-
 
     const hash = await bcrypt.hash(req.body.password, 10);
 
@@ -94,7 +95,8 @@ if (error) {
       stack: req.body.stack,
       password: hash,
       cohort,
-      role:"student",
+      bio: req.body.bio,
+      role: "student",
       hub: req.body.hub,
       image: imageShow.secure_url,
       imageId: imageShow.public_id,
@@ -104,7 +106,7 @@ if (error) {
       fs.unlinkSync(filePath);
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       status: true,
       data: newUser,
     });
@@ -113,18 +115,20 @@ if (error) {
     if (filePath && fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-      if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
 
-    return res.status(400).json({
-      status: false,
-      field,
-      message: `${field} already exists`,
-    });
-  }
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyValue)[0];
 
-    console.error(err);
-    next(ApiError.badRequest(err.message));
+      return res.status(400).json({
+        status: false,
+        field,
+        message: `${field} already exists`,
+      });
+    }
+
+    console.error("FULL ERROR:", err);
+
+    return next(ApiError.badRequest(err.message || "Something went wrong"));
   }
 };
 
@@ -155,8 +159,15 @@ if (error) {
                     id: user._id,
                     stack: user.stack,
                     role: user.role
-                }, process.env.jwtSecret, {expiresIn: "1d"});
-                res.status(200).json({message:"logged in", data: { token,stack: user.stack,hub:user.hub}})
+
+                }, process.env.secret_key, {expiresIn: "1d"});
+                const userInfo = {
+                    name:user.name,
+                    stack:user.stack,
+                    id:user._id
+
+                }
+                res.status(200).json({message:"logged in", data: { token,stack: user.stack,hub:user.hub,userInfo}})
             }else{
                 res.status(400).json({error: `Invalid credentials`})
             }
@@ -174,7 +185,7 @@ const studentDashboard = async (req, res, next) => {
     const studentId = req.user.id;
 
     const student = await userModel.findById(studentId).select(
-      "name email image stack"
+      "name email image stack bio"
     );
 
     const submissions = await AssignmentSubmission.find({
@@ -540,9 +551,166 @@ const makeStudent = async(req, res, next)=>{
     }
 }
 
+
+// const getDashboardStatchgecks = async () => {
+//   try {
+//     const students =  await  userModel.find({role: "student"}).countDocuments()
+//      const staffs = await userModel.find({role: "tutor"}).countDocuments()
+//       const alumnis = await userModel.countDocuments()
+    
+//    const allStudents = await userModel
+//       .findOne({email:""})
+//       .select("-password")
+//       .sort({ createdAt: -1 });
+
+// console.log("hi", allStudents)
+
+
+//     console.log({
+//       students,
+//       staffs,
+//       alumnis,
+//     })
+//   }
+//     catch (error) {
+//       throw error;
+//     } 
+// };
+   
+// getDashboardStatchgecks();
+
+const getDashboardStats = async (req, res, next) => {
+  try {
+    const [students, staffs, alumnis] = await Promise.all([
+      userModel.find({ role: "student" }).countDocuments(),
+      userModel.find({ role: "tutor" }).countDocuments(), 
+        userModel.find({role: "alumni"}).countDocuments()
+    
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        students,
+        staffs,
+        alumnis,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const getAllStudents = async (req, res, next) => {
+  try {
+    const students = await userModel
+      .find({role: "student"})
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: students.length,
+      data: students,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAllStaffs = async (req, res, next) => {
+  try {
+    const staffs = await userModel
+      .find({ role: "tutor" })
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: staffs.length,
+      data: staffs,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAllAlumnis = async (req, res, next) => {
+  try {
+    const alumnis = await userModel
+      .find({ role: "alumni" })
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: alumnis.length,
+      data: alumnis,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSingleStudent = async (req, res, next) => {
+  try {
+    const student = await userModel
+      .findById(req.params.id)
+      .select("-password")
+      .populate("allRatings assignments");
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: student,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSingleStaff = async (req, res, next) => {
+  try {
+    const staff = await userModel
+      .findById(req.params.id)
+      .populate("rating");
+
+    if (!staff) {
+      return res.status(404).json({ message: "Staff not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: staff,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSingleAlumni = async (req, res, next) => {
+  try {
+    const alumni = await userModel
+      .findById(req.params.id)
+      .select("-password");
+
+    if (!alumni) {
+      return res.status(404).json({ message: "Alumni not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: alumni,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports ={
     createUser,
-    upload,
     deleteUser,
     getUser,
     getOneUser,
@@ -557,5 +725,12 @@ module.exports ={
     updateAllUsersWeekStatus,
     resetWeeklyAssessments,
     allExistEmailsToLowerCase,
-    studentDashboard
+    studentDashboard,
+    getDashboardStats,
+    getAllStaffs,
+getAllStudents,
+getAllAlumnis,
+getSingleStudent,
+getSingleStaff,
+getSingleAlumni,
 }
