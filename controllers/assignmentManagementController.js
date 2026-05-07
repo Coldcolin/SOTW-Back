@@ -403,6 +403,7 @@ const gradeSubmission = async (req, res, next) => {
         // Update submission with grade and feedback
         submission.grade = grade;
         submission.feedback = feedback;
+        submission.status = "Graded";
         await submission.save();
 
         res.status(200).json({
