@@ -718,7 +718,55 @@ const getSingleAlumni = async (req, res, next) => {
   }
 };
 
+// GET /profile - Get logged-in user's profile and stats
+const getProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const user = await userModel.findById(userId).select("name email bio image role");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const profile = {
+      name: user.name,
+      email: user.email,
+      bio: user.bio,
+      image: user.image
+    };
+
+    // Only add stats if student
+    if (user.role === "student") {
+      // Get all ratings for the student
+      const Ratings = require("../models/ratings");
+      const AssignmentSubmission = require("../models/AssignmentSubmission");
+
+      const ratings = await Ratings.find({ student: userId });
+      const averageScore = ratings.length > 0
+        ? (ratings.reduce((sum, r) => sum + (r.total || 0), 0) / ratings.length).toFixed(2)
+        : null;
+
+      // Get all submissions for the student
+      const submissions = await AssignmentSubmission.find({ student: userId });
+      // Completed assessments: graded assignments
+      const completedAssessments = submissions.filter(s => s.grade !== undefined && s.grade !== null).length;
+      // Pending assignments: submitted but not graded
+      const pendingAssignments = submissions.filter(s => s.grade === undefined || s.grade === null).length;
+
+      profile.stat = {
+        averageScore: averageScore ? Number(averageScore) : 0,
+        completedAssessments,
+        pendingAssignments
+      };
+    }
+
+    res.status(200).json({ profile });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports ={
+  getProfile,
     createUser,
     deleteUser,
     getUser,
