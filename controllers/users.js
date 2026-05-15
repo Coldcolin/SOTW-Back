@@ -495,8 +495,17 @@ const secondUpdate = async(req,res,next)=>{
         const Data={
             name: req.body.name || checkUser.name,
             password: req.body.password || checkUser.password,
-            email: req.body.email || checkUser.email,
-            phone: req.body.phone || checkUser.phone
+            email: checkUser.email,
+            phone: req.body.phone || checkUser.phone,
+            bio: req.body.bio || checkUser.bio,
+        }
+        if (req.body.email) {
+            const emailExists = await userModel.findOne({email: req.body.email.toLowerCase()});
+            if (emailExists && emailExists._id.toString() !== id) {
+                return res.status(400).json({message: "Email already in use"});
+            } else {
+                Data.email = req.body.email.toLowerCase();
+            }
         }
 
         if(req.file){
