@@ -16,6 +16,7 @@ const fs = require("fs")
 const {validateStudent,validateLogin} = require("../middleware/validator.js")
 const AssignmentSubmission =require("../models/AssignmentSubmission.js")
 const Assignment = require("../models/Assignment.js")
+const Ratings = require("../models/ratings");
 
 const alumniModel = require("../models/Alumni");
 const tutorModel = require("../models/tutors");
@@ -494,7 +495,7 @@ const secondUpdate = async(req,res,next)=>{
 
         const Data={
             name: req.body.name || checkUser.name,
-            password: req.body.password || checkUser.password,
+            // password: req.body.password || checkUser.password,
             email: checkUser.email,
             phone: req.body.phone || checkUser.phone,
             bio: req.body.bio || checkUser.bio,
@@ -718,7 +719,6 @@ const getSingleAlumni = async (req, res, next) => {
   }
 };
 
-// GET /profile - Get logged-in user's profile and stats
 const getProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -737,9 +737,6 @@ const getProfile = async (req, res, next) => {
     // Only add stats if student
     if (user.role === "student") {
       // Get all ratings for the student
-      const Ratings = require("../models/ratings");
-      const AssignmentSubmission = require("../models/AssignmentSubmission");
-
       const ratings = await Ratings.find({ student: userId });
       const averageScore = ratings.length > 0
         ? (ratings.reduce((sum, r) => sum + (r.total || 0), 0) / ratings.length).toFixed(2)
