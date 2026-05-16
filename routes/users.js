@@ -7,7 +7,8 @@ getAllStudents,
 getAllAlumnis,
 getSingleStudent,
 getSingleStaff,
-getSingleAlumni, resetWeeklyAssessments} = require("../controllers/users.js");
+getSingleAlumni, resetWeeklyAssessments,
+getProfile} = require("../controllers/users.js");
 const { authenticate } = require('../middleware/authentation.js');
 const upload = require("../middleware/multer.js")
 const router = express.Router();
@@ -39,6 +40,9 @@ router.get("/alumnis", authenticate, getAllAlumnis);
 router.get("/students/:id", authenticate, getSingleStudent);
 router.get("/staffs/:id", authenticate, getSingleStaff);
 router.get("/alumnis/:id", authenticate, getSingleAlumni);
+
+// GET /profile - Get logged-in user's profile and stats
+router.get('/profile', authenticate, getProfile);
 
 
 module.exports = router;
