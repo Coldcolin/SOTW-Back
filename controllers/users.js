@@ -763,29 +763,133 @@ const getProfile = async (req, res, next) => {
   }
 };
 
+// Rankings and Top Assignment Scorers Endpoint
+const getRankingsAndTopAssignments = async (req, res, next) => {
+  try {
+
+    // Normalize stack query for flexible matching (case/space-insensitive)
+    let stackQuery = null;
+    if (req.query.stack) {
+      // Remove spaces and lowercase for matching
+      const normalized = req.query.stack.replace(/\s+/g, '').toLowerCase();
+      stackQuery = normalized;
+    }
+
+    // 1. Rankings (from Ratings)
+    // Get all students (fetch all, filter in-memory for robust normalization)
+    let students = await userModel.find({ role: "student" }).select("_id name stack");
+    if (stackQuery) {
+      students = students.filter(s => {
+        const normalizedStack = (s.stack || "").replace(/\s+/g, '').toLowerCase();
+        return normalizedStack === stackQuery;
+      });
+    }
+
+    // Get all ratings for these students
+    const studentIds = students.map(s => s._id);
+    const ratings = await Ratings.find({ student: { $in: studentIds } });
+
+    // Group ratings by student
+    const ratingsByStudent = {};
+    ratings.forEach(r => {
+      const sid = r.student.toString();
+      if (!ratingsByStudent[sid]) ratingsByStudent[sid] = [];
+      ratingsByStudent[sid].push(r);
+    });
+
+    // Calculate averages
+    const rankings = students.map(student => {
+      const sid = student._id.toString();
+      const studentRatings = ratingsByStudent[sid] || [];
+      const count = studentRatings.length;
+      // Use correct field names from ratings.js
+      const fields = ["punctuality", "Assignments", "personalDefense", "classParticipation", "classAssessment"];
+      const averages = {};
+      let overallSum = 0;
+      fields.forEach(field => {
+        const avg = count > 0 ? studentRatings.reduce((sum, r) => sum + (r[field] || 0), 0) / count : 0;
+        averages[field] = Number(avg.toFixed(2));
+        overallSum += avg;
+      });
+      const overallScore = count > 0 ? overallSum / fields.length : 0;
+      return {
+        studentName: student.name,
+        stack: student.stack,
+        overallScore: Number(overallScore.toFixed(2)),
+        punctuality: averages.punctuality,
+        Assignments: averages.Assignments,
+        personalDefence: averages.personalDefense, // typo in model: personalDefense
+        classParticipation: averages.classParticipation,
+        classAssessment: averages.classAssessment
+      };
+    });
+
+    // 2. Top Assignment Scorers (from AssignmentSubmission)
+    // Get all graded submissions, populate assignment and student
+    const submissionFilter = { status: "Graded" };
+    // No need to filter AssignmentSubmission by stack, since students are already filtered
+    const gradedSubs = await AssignmentSubmission.find({ status: "Graded", student: { $in: studentIds } })
+      .populate({ path: "assignment", select: "title" })
+      .populate({ path: "student", select: "name stack" });
+
+    // Group by assignment
+    const assignmentGroups = {};
+    gradedSubs.forEach(sub => {
+      const aid = sub.assignment?._id?.toString();
+      if (!aid) return;
+      if (!assignmentGroups[aid]) assignmentGroups[aid] = [];
+      assignmentGroups[aid].push(sub);
+    });
+
+    // For each assignment, find the highest scorer (randomize if tie)
+    const topAssignmentScorers = Object.values(assignmentGroups).map(subs => {
+      if (subs.length === 0) return null;
+      // Find max grade
+      const maxGrade = Math.max(...subs.map(s => s.grade || 0));
+      // Get all with max grade
+      const topSubs = subs.filter(s => (s.grade || 0) === maxGrade);
+      // Randomly pick one
+      const winner = topSubs[Math.floor(Math.random() * topSubs.length)];
+      return {
+        title: winner.assignment?.title || "Untitled",
+        name: winner.student?.name || "Unknown",
+        totalScore: winner.grade
+      };
+    }).filter(Boolean);
+
+    res.status(200).json({
+      rankings,
+      topAssignmentScorers
+    });
+  } catch (err) {
+    next(ApiError.badRequest(err.message));
+  }
+};
+
 module.exports ={
   getProfile,
-    createUser,
-    deleteUser,
-    getUser,
-    getOneUser,
-    updateUser,
-    secondUpdate,
-    getUsers,
-    loginUser,
-    makeAlumni,
-    makeStudent,
-    forgotPassword,
-    resetPassword,
-    updateAllUsersWeekStatus,
-    resetWeeklyAssessments,
-    allExistEmailsToLowerCase,
-    studentDashboard,
-    getDashboardStats,
-    getAllStaffs,
-getAllStudents,
-getAllAlumnis,
-getSingleStudent,
-getSingleStaff,
-getSingleAlumni,
+  createUser,
+  deleteUser,
+  getUser,
+  getOneUser,
+  updateUser,
+  secondUpdate,
+  getUsers,
+  loginUser,
+  makeAlumni,
+  makeStudent,
+  forgotPassword,
+  resetPassword,
+  updateAllUsersWeekStatus,
+  resetWeeklyAssessments,
+  allExistEmailsToLowerCase,
+  studentDashboard,
+  getDashboardStats,
+  getAllStaffs,
+  getAllStudents,
+  getAllAlumnis,
+  getSingleStudent,
+  getSingleStaff,
+  getSingleAlumni,
+  getRankingsAndTopAssignments,
 }
