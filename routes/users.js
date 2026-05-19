@@ -21,7 +21,7 @@ router.delete("/remove/:id", authenticate, deleteUser)
 router.get("/getUser/:id", authenticate, getUser);
 router.get("/oneUser/:id", authenticate, getOneUser);
 router.get("/allUsers", authenticate, getUsers);
-router.patch("/update/:id",upload.single("image"), authenticate, updateUser);
+router.patch("/update",upload.single("image"), authenticate, updateUser);
 router.patch("/anotherUpdate/:id", authenticate, secondUpdate);
 router.patch("/alumni/:id", authenticate, makeAlumni);
 router.patch("/student/:id", authenticate, makeStudent);
