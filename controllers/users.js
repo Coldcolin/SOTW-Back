@@ -818,7 +818,7 @@ const getRankingsAndTopAssignments = async (req, res, next) => {
         overallScore: Number(overallScore.toFixed(2)),
         punctuality: averages.punctuality,
         Assignments: averages.Assignments,
-        personalDefence: averages.personalDefense, // typo in model: personalDefense
+        personalDefence: averages.personalDefense, 
         classParticipation: averages.classParticipation,
         classAssessment: averages.classAssessment
       };
