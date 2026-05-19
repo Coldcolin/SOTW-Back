@@ -468,7 +468,7 @@ const updateUser = async (req, res, next)=>{
         const id = req.params.id;
         const userWho = await userModel.findById(id);
         let imageShow;
-        if(req.file.path){
+        if(req.file && req.file.path){
             await cloudinary.uploader.destroy(userWho.imageId);
             imageShow = await cloudinary.uploader.upload(req.file.path)
         }
@@ -477,7 +477,8 @@ const updateUser = async (req, res, next)=>{
             name: req.body.name || userWho.name,
             image: imageShow.secure_url || userWho.image,
             imageId: imageShow.public_id || userWho.imageId,
-            phone: req.body.phone || userWho.phone
+            phone: req.body.phone || userWho.phone,
+            bio: req.body.bio || userWho.bio,
         }, {new: true});
         res.status(200).json({data: user});
     }catch(err){
