@@ -9,7 +9,8 @@ getSingleStudent,
 getSingleStaff,
 getSingleAlumni, resetWeeklyAssessments,
 getProfile,
-getRankingsAndTopAssignments
+getRankingsAndTopAssignments,
+changePassword
 } = require("../controllers/users.js");
 const { authenticate } = require('../middleware/authentation.js');
 const upload = require("../middleware/multer.js")
@@ -48,5 +49,7 @@ router.get('/profile', authenticate, getProfile);
 
 // Rankings and Top Assignment Scorers
 router.get("/rankings", authenticate, getRankingsAndTopAssignments);
+
+router.patch("/change-password", authenticate, changePassword);
 
 module.exports = router;
