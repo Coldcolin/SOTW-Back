@@ -8,7 +8,9 @@ getAllAlumnis,
 getSingleStudent,
 getSingleStaff,
 getSingleAlumni, resetWeeklyAssessments,
-getProfile} = require("../controllers/users.js");
+getProfile,
+getRankingsAndTopAssignments
+} = require("../controllers/users.js");
 const { authenticate } = require('../middleware/authentation.js');
 const upload = require("../middleware/multer.js")
 const router = express.Router();
@@ -44,5 +46,7 @@ router.get("/alumnis/:id", authenticate, getSingleAlumni);
 // GET /profile - Get logged-in user's profile and stats
 router.get('/profile', authenticate, getProfile);
 
+// Rankings and Top Assignment Scorers
+router.get("/rankings", authenticate, getRankingsAndTopAssignments);
 
 module.exports = router;
