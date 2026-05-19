@@ -465,7 +465,7 @@ const getOneUser = async (req, res, next)=>{
 
 const updateUser = async (req, res, next)=>{
     try{
-        const id = req.params.id;
+        const { id } = req.user;
         const userWho = await userModel.findById(id);
         let imageShow;
         if(req.file && req.file.path){
