@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     password: {type: String, required: true},
     stack: {type:String, required: true},
     role: {type: String, required: true},
-    cohort: {type: Number, required: true},  
+    cohort: {type: Number},  
     allRatings:[{
       type: mongoose.Schema.Types.ObjectId, ref: "ratings"
     }],  
