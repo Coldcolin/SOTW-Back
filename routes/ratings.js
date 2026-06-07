@@ -8,7 +8,7 @@ router.post("/add/:id", addRatings);
 router.get("/get/:id", getRatings);
 router.delete("/delete/:studentId/:week", deleteRatingss);
 
-// Bulk upload ratings from Excel (admin only)
-router.post("/upload-excel", multer.single("file"), uploadRatingsExcel);
+// Bulk upload ratings from Excel (Tutors only)
+router.post("/upload-excel", authorizedTutor, multer.single("file"), uploadRatingsExcel);
 
 module.exports = router;
